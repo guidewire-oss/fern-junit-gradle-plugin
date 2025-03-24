@@ -1,4 +1,4 @@
-# Fern JUnit Publisher
+# Fern JUnit Gradle Plugin
 
 A Gradle plugin for publishing JUnit test results to a Fern test reporting instance.
 
