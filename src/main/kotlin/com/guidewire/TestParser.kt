@@ -6,27 +6,44 @@ import org.w3c.dom.Element
 import org.xml.sax.InputSource
 import java.io.File
 import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import java.nio.file.PathMatcher
+import java.nio.file.Paths
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.io.path.absolutePathString
 
-fun parseReports(testRun: TestRun, filePattern: String, tags: String, verbose: Boolean): Result<Unit> {
+fun matches(path: Path, matcher: PathMatcher, matchAll: Boolean): Boolean {
+  return matcher.matches(path) || matchAll
+}
+
+fun parseReports(testRun: TestRun, filePattern: String, projectDir: String = "", tags: String = "", verbose: Boolean): Result<Unit> {
   return runCatching {
-    val matcher = FileSystems.getDefault().getPathMatcher("glob:$filePattern")
-    val directoryPath = Path.of(File(filePattern).parent ?: ".")
-    val files = File(directoryPath.toString()).walkTopDown()
-      .filter { file -> matcher.matches(Path.of(file.absolutePath)) && file.isFile }
-      .toList()
+    val baseDir = projectDir + (if (projectDir.isNotBlank() && !projectDir.endsWith('/')) "/" else "") + filePattern.substringBefore('*')
+    val pattern = "*" + filePattern.substringAfter('*', "")
+
+    val matcher = FileSystems.getDefault().getPathMatcher("glob:$pattern")
+
+    val path = Paths.get(baseDir)
+    val files: List<Path> = try {
+      Files.walk(path)
+        .filter { it: Path? -> it?.let { matches(it, matcher, pattern.contentEquals("*")) } ?: false }
+        .toList()
+    } catch (e: NoSuchFileException) {
+      emptyList()
+    }
 
     //Require throws when false
-    require(files.isNotEmpty()) { "No files found for pattern $filePattern" }
+    require(files.isNotEmpty()) { "No files found for pattern $pattern with baseDir $baseDir" }
 
     files.forEach { file ->
-      val suiteRunsResult = parseReport(file.absolutePath, tags, verbose)
+      val suiteRunsResult = parseReport(file.absolutePathString(), tags, verbose)
       suiteRunsResult.getOrThrow().forEach { suiteRun ->
         testRun.suiteRuns.add(suiteRun)
       }
@@ -147,7 +164,8 @@ fun parseTestSuite(testSuite: TestSuite, tags: String, verbose: Boolean): Result
       GlobalClock.now()
     } else {
       try {
-        ZonedDateTime.parse(testSuite.timestamp, DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC")))
+        val timestamp = if (!testSuite.timestamp.endsWith('Z')) testSuite.timestamp + "Z" else testSuite.timestamp
+        ZonedDateTime.parse(timestamp, DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC")))
       } catch (e: DateTimeParseException) {
         throw IllegalArgumentException("Failed to parse suite start time: ${e.message}")
       }

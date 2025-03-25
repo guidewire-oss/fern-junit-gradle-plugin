@@ -40,6 +40,8 @@ private fun postTestRun(endpoint: String, fernUrl: String, payload: String): Htt
     .POST(HttpRequest.BodyPublishers.ofString(payload))
     .build()
 
+  println("Sending request: $payload")
+
   var response = client.send(request, HttpResponse.BodyHandlers.ofString())
 
   if(response.statusCode() == 307) {

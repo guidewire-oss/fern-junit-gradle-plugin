@@ -6,7 +6,7 @@ A Gradle plugin for publishing JUnit test results to a Fern test reporting insta
 
 This plugin simplifies the process of collecting JUnit XML test reports and publishing them to a Fern test reporting service. It parses JUnit XML reports, converts them to Fern's data model, and sends them to your Fern instance through its API.
 
-To learn more about Fern, check out [it's repository](https://github.com/guidewire-oss/fern-reporter)
+To learn more about Fern, check out [its repository](https://github.com/guidewire-oss/fern-reporter)
 
 ## Features
 
@@ -22,7 +22,7 @@ Add the plugin to your `build.gradle.kts` file:
 
 ```kotlin
 plugins {
-    id("com.guidewire.fern-publisher") version "1.0.0"
+  id("com.guidewire.fern-publisher") version "1.0.0"
 }
 ```
 
@@ -30,7 +30,7 @@ Or in `build.gradle`:
 
 ```groovy
 plugins {
-    id 'com.guidewire.fern-publisher' version '1.0.0'
+  id 'com.guidewire.fern-publisher' version '1.0.0'
 }
 ```
 
@@ -40,23 +40,23 @@ Configure the plugin in your build script:
 
 ```kotlin
 fernPublisher {
-    fernUrl.set("https://your-fern-instance.example.com")
-    projectName.set("my-project")
-    reportPaths.set(listOf("build/test-results/**/*.xml"))
-    fernTags.set(listOf("automated", "integration"))
-    verbose.set(false)
+  fernUrl.set("https://your-fern-instance.example.com")
+  projectName.set("my-project")
+  reportPaths.set(listOf("build/test-results/**/*.xml"))
+  fernTags.set(listOf("automated", "integration"))
+  verbose.set(false)
 }
 ```
 
 ### Parameters
 
-| Property | Description | Required | Default |
-|----------|-------------|----------|---------|
-| fernUrl | URL of your Fern instance | Yes | - |
-| projectName | Name of your project in Fern | Yes | - |
-| reportPaths | Glob patterns for locating JUnit XML reports | Yes | - |
-| fernTags | Tags to apply to all tests | No | empty list |
-| verbose | Enable verbose logging | No | false |
+| Property    | Description                                  | Required | Default    |
+|-------------|----------------------------------------------|----------|------------|
+| fernUrl     | URL of your Fern instance                    | Yes      | -          |
+| projectName | Name of your project in Fern                 | Yes      | -          |
+| reportPaths | Glob patterns for locating JUnit XML reports | Yes      | -          |
+| fernTags    | Tags to apply to all tests                   | No       | empty list |
+| verbose     | Enable verbose logging                       | No       | false      |
 
 ## Usage
 
@@ -70,7 +70,7 @@ You can also make it run automatically after your tests:
 
 ```kotlin
 tasks.named("test") {
-    finalizedBy("publishToFern")
+  finalizedBy("publishToFern")
 }
 ```
 
@@ -80,9 +80,9 @@ tasks.named("test") {
 
 ```kotlin
 fernPublisher {
-    fernUrl.set("https://fern.example.com")
-    projectName.set("backend-api")
-    reportPaths.set(listOf("build/test-results/**/*.xml"))
+  fernUrl.set("https://fern.example.com")
+  projectName.set("backend-api")
+  reportPaths.set(listOf("build/test-results/**/*.xml"))
 }
 ```
 
@@ -90,13 +90,15 @@ fernPublisher {
 
 ```kotlin
 fernPublisher {
-    fernUrl.set("https://fern.example.com")
-    projectName.set("full-stack")
-    reportPaths.set(listOf(
-        "${project.buildDir}/test-results/test/**/*.xml",
-        "frontend/build/test-results/*.xml"
-    ))
-    fernTags.set(listOf("ci", "nightly"))
+  fernUrl.set("https://fern.example.com")
+  projectName.set("full-stack")
+  reportPaths.set(
+    listOf(
+      "${project.buildDir}/test-results/test/**/*.xml",
+      "frontend/build/test-results/*.xml"
+    )
+  )
+  fernTags.set(listOf("ci", "nightly"))
 }
 ```
 
@@ -114,14 +116,15 @@ cd fern-junit-publisher
 ./gradlew build
 ```
 
-## Development 
+## Development
 
-You can build and publish this plugin for use locally with the command 
+You can build and publish this plugin for use locally with the command
+
 ```bash
 ./gradlew publishToMavenLocal
 ```
 
-You should see the plugin in your local `.m2` repository. 
+You should see the plugin in your local `.m2` repository.
 
 From there you can set up a test project to use the plugin. Make sure to edit your `settings.gradle` file to use plugins
 found in your local m2 repository.
@@ -129,8 +132,8 @@ found in your local m2 repository.
 ```gradle
 pluginManagement {
     repositories {
-        mavenCentral()
         mavenLocal()
+        mavenCentral()
     }
 }
 ```

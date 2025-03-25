@@ -7,6 +7,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import java.util.*
@@ -28,6 +29,9 @@ abstract class PublishToFern : DefaultTask() {
   @get:Input
   @get:Optional
   abstract val verbose: Property<Boolean>
+
+  @get:Internal
+  abstract val projectDir: Property<String>
 
   init {
     fernTags.convention(listOf()) // Set default value
@@ -65,7 +69,7 @@ abstract class PublishToFern : DefaultTask() {
       }
 
       // Parse reports
-      parseReports(testRun, reportPath, tagsString, isVerbose).fold(
+      parseReports(testRun, reportPath, projectDir.get(), tagsString, isVerbose).fold(
         onSuccess = {
           if (isVerbose) {
             logger.debug("Successfully parsed reports from $reportPath")

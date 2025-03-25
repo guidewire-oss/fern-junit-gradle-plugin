@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter
 
 object KZoneDateTimeSerializer : KSerializer<ZonedDateTime> {
     override fun serialize(encoder: Encoder, value: ZonedDateTime) {
-        encoder.encodeString(value.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'XXX")))
+        encoder.encodeString(value.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX")))
     }
 
     override fun deserialize(decoder: Decoder): ZonedDateTime {
