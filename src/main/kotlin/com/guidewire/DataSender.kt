@@ -12,22 +12,34 @@ import java.net.http.HttpResponse
 @OptIn(ExperimentalSerializationApi::class)
 fun sendTestRun(testRun: TestRun, fernUrl: String, verbose: Boolean): Result<Unit> {
   return runCatching {
-    val json = Json {
-      prettyPrint = true
-      encodeDefaults = true
-      namingStrategy = JsonNamingStrategy.SnakeCase
+    var response: HttpResponse<String>? = null
+
+    for (i in 0..2) {
+      val json = Json {
+        prettyPrint = true
+        encodeDefaults = true
+        namingStrategy = JsonNamingStrategy.SnakeCase
+      }
+
+      val payload = json.encodeToString(testRun)
+      val endpoint = "$fernUrl/api/testrun/"
+
+      if (verbose) {
+        println("Sending POST request to $endpoint...")
+      }
+
+      response = postTestRun(endpoint, fernUrl, payload)
+      if (response.statusCode() < 300) {
+        break
+      } else {
+        println("Failed to send POST request...")
+        if (verbose) {
+          println(response.body())
+        }
+      }
     }
-
-    val payload = json.encodeToString(testRun)
-    val endpoint = "$fernUrl/api/testrun/"
-
-    if (verbose) {
-      println("Sending POST request to $endpoint...")
-    }
-
-    val response = postTestRun(endpoint, fernUrl, payload)
-    if (response.statusCode()>= 300) {
-      throw RuntimeException("Unexpected response code: ${response.statusCode()}")
+    if (response?.statusCode()!! >= 300) {
+      throw RuntimeException("Unexpected response code: ${response?.statusCode()}")
     }
   }
 }
@@ -44,7 +56,7 @@ private fun postTestRun(endpoint: String, fernUrl: String, payload: String): Htt
 
   var response = client.send(request, HttpResponse.BodyHandlers.ofString())
 
-  if(response.statusCode() == 307) {
+  if (response.statusCode() == 307) {
     val locationHeader = response.headers().firstValue("location")
     response = postTestRun(fernUrl + locationHeader, fernUrl, payload)
   }

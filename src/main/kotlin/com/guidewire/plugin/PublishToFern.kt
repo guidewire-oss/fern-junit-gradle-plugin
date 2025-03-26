@@ -59,7 +59,7 @@ abstract class PublishToFern : DefaultTask() {
     // Create TestRun object
     val testRun = TestRun(
       testProjectName = projectName,
-      testSeed = Random().nextLong()
+      testSeed = Random().nextLong(0, Long.MAX_VALUE),
     )
 
     // Process each report path
