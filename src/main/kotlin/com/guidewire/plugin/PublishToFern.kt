@@ -43,7 +43,7 @@ abstract class PublishToFern : DefaultTask() {
   fun execute() {
     val isVerbose = verbose.get()
     val projectName = projectName.get()
-    val fernUrl = fernUrl.get()
+    val fernUrl = (fernUrl.get() as String).removeSuffix("/")
     val tagsString = fernTags.get().joinToString(",")
 
     logger.lifecycle("Executing PublishToFern")
