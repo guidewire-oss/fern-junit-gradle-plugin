@@ -43,7 +43,6 @@ class DataSenderTest {
   }
 
   @Test
-//  @Disabled
   fun `sendTestRun should successfully send data`() {
     // Setup mock server
     stubFor(
@@ -68,7 +67,6 @@ class DataSenderTest {
   }
 
   @Test
-//  @Disabled
   fun `sendTestRun should handle server errors`() {
     // Setup mock server to return error
     stubFor(
@@ -90,7 +88,6 @@ class DataSenderTest {
   }
 
   @Test
-//  @Disabled
   fun `sendTestRun should handle connection errors`() {
     // Test with non-existent server
     val result = sendTestRun(testRun, "http://non-existent-server:12345", false)

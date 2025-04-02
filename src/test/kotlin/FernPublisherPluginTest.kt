@@ -38,7 +38,7 @@ class FernPublisherPluginTest {
 
     // Stub the API endpoint
     stubFor(
-      post(urlEqualTo("/api/testrun"))
+      post(urlEqualTo("/api/testrun/"))
         .willReturn(aResponse().withStatus(200))
     )
 
@@ -61,7 +61,6 @@ class FernPublisherPluginTest {
   }
 
   @Test
-//  @Disabled
   fun `plugin should apply correctly to project`() {
     val project = ProjectBuilder.builder().build()
     project.plugins.apply("com.guidewire.fern-publisher")
@@ -70,7 +69,6 @@ class FernPublisherPluginTest {
   }
 
   @Test
-//  @Disabled
   fun `plugin extension should configure task properties`() {
     val project = ProjectBuilder.builder().build()
     project.plugins.apply("com.guidewire.fern-publisher")
@@ -88,7 +86,6 @@ class FernPublisherPluginTest {
   }
 
   @Test
-  @Disabled
   fun `task should successfully publish test results`() {
     buildFile.writeText(
       """
@@ -117,18 +114,17 @@ class FernPublisherPluginTest {
 
     // Verify the API was called
     verify(
-      postRequestedFor(urlEqualTo("/api/testrun"))
+      postRequestedFor(urlEqualTo("/api/testrun/"))
         .withHeader("Content-Type", equalTo("application/json"))
     )
   }
 
   @Test
-  @Disabled
   fun `task should handle API errors`() {
     // Reset stub to return an error
     reset()
     stubFor(
-      post(urlEqualTo("/api/testrun"))
+      post(urlEqualTo("/api/testrun/"))
         .willReturn(aResponse().withStatus(500))
     )
 
@@ -157,7 +153,6 @@ class FernPublisherPluginTest {
   }
 
   @Test
-  @Disabled
   fun `task should handle missing report files`() {
     buildFile.writeText(
       """
