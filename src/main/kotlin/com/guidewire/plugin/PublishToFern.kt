@@ -80,7 +80,7 @@ abstract class PublishToFern : DefaultTask() {
           if (isVerbose) {
             logger.error("Stack trace: ", error)
           }
-          return
+          throw error
         }
       )
     }

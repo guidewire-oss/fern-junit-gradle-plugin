@@ -34,7 +34,6 @@ class TestParserTest {
   fun `parseReports should handle empty file pattern`() {
     val result = parseReports(testRun = testRun, filePattern = "nonexistent/*.xml", projectDir = tempDir.absolutePathString(), verbose = true)
 
-    System.out.println(result.exceptionOrNull()?.printStackTrace())
     assertTrue(result.isFailure)
     assertTrue(result.exceptionOrNull()?.message?.contains("No files found for pattern") ?: false)
   }
