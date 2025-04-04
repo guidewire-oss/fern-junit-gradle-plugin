@@ -39,7 +39,7 @@ fun sendTestRun(testRun: TestRun, fernUrl: String, verbose: Boolean): Result<Uni
       }
     }
     if (response?.statusCode()!! >= 300) {
-      throw RuntimeException("Unexpected response code: ${response?.statusCode()}")
+      throw RuntimeException("Unexpected response code: ${response.statusCode()}")
     }
   }
 }
