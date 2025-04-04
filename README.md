@@ -2,6 +2,8 @@
 
 A Gradle plugin for publishing JUnit test results to a Fern test reporting instance.
 
+![example workflow](https://github.com/guidewire-oss/fern-junit-gradle-plugin/actions/workflows/gradle.yml/badge.svg)
+
 ## Overview
 
 This plugin simplifies the process of collecting JUnit XML test reports and publishing them to a Fern test reporting service. It parses JUnit XML reports, converts them to Fern's data model, and sends them to your Fern instance through its API.
