@@ -33,10 +33,15 @@ abstract class PublishToFern : DefaultTask() {
   @get:Internal
   abstract val projectDir: Property<String>
 
+  @get:Input
+  @get:Optional
+  abstract val failOnError: Property<Boolean>
+
   init {
     fernTags.convention(listOf()) // Set default value
     verbose.convention(false)
     description = "Publish test results to your Fern instance"
+    failOnError.convention(false)
   }
 
   @TaskAction
@@ -52,6 +57,10 @@ abstract class PublishToFern : DefaultTask() {
 
     if (reportPaths.get().isEmpty()) {
       logger.error("No report paths provided. Cannot publish results.")
+      if(failOnError.get()) {
+        throw RuntimeException("No report paths provided. Cannot publish results.")
+      }
+
       return
     }
 
@@ -80,7 +89,10 @@ abstract class PublishToFern : DefaultTask() {
           if (isVerbose) {
             logger.error("Stack trace: ", error)
           }
-          throw error
+
+          if(failOnError.get()) {
+            throw error
+          }
         }
       )
     }
@@ -102,7 +114,10 @@ abstract class PublishToFern : DefaultTask() {
         if (isVerbose) {
           logger.error("Stack trace: ", error)
         }
-        throw RuntimeException("Failed to publish test results to Fern", error)
+
+        if(failOnError.get()) {
+          throw RuntimeException("Failed to publish test results to Fern", error)
+        }
       }
     )
   }
