@@ -17,6 +17,7 @@ class FernPublisherPlugin : Plugin<Project> {
       extension.reportPaths.orNull?.let { task.reportPaths.set(it) }
       extension.fernTags.orNull?.let { task.fernTags.set(it) }
       extension.verbose.orNull?.let { task.verbose.set(it) }
+      extension.failOnError.orNull?.let {task.failOnError.set(it) }
       task.projectDir.set(project.projectDir.absolutePath + "/")
     }
   }
