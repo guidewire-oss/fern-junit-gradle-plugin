@@ -10,9 +10,11 @@ abstract class FernPublisherExtension {
   abstract val reportPaths: ListProperty<String>
   abstract val fernTags: ListProperty<String>
   abstract val verbose: Property<Boolean>
+  abstract val failOnError: Property<Boolean>
 
   init {
     fernTags.convention(listOf())
     verbose.convention(false)
+    failOnError.convention(false)
   }
 }
