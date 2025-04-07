@@ -26,9 +26,17 @@ fun matches(path: Path, matcher: PathMatcher, matchAll: Boolean): Boolean {
 fun parseReports(testRun: TestRun, filePattern: String, projectDir: String = "", tags: String = "", verbose: Boolean): Result<Unit> {
   return runCatching {
     val baseDir = projectDir + (if (projectDir.isNotBlank() && !projectDir.endsWith('/')) "/" else "") + filePattern.substringBefore('*')
-    val pattern = "*" + filePattern.substringAfter('*', "")
 
-    val matcher = FileSystems.getDefault().getPathMatcher("glob:$pattern")
+    // allows you to match on "/**/*.xml" or "/actual-file.xml" in the plugin parameters. "/*.xml" case is matched below
+    val pattern = if(!filePattern.contains("**")) baseDir else "*" + filePattern.substringAfter('*', "")
+
+    var glob = "glob:$pattern"
+    if(filePattern.contains("*.xml") && !pattern.contentEquals("**/*.xml")) {
+      //match all xml files in a single directory. allows you to add "/*.xml" in the plugin parameters.
+      glob = "regex:.*\\.xml\$"
+    }
+
+    val matcher = FileSystems.getDefault().getPathMatcher(glob)
 
     val path = Paths.get(baseDir)
     val files: List<Path> = try {
