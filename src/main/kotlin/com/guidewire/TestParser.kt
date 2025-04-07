@@ -26,7 +26,13 @@ fun matches(path: Path, matcher: PathMatcher, matchAll: Boolean): Boolean {
 fun parseReports(testRun: TestRun, filePattern: String, projectDir: String = "", tags: String = "", verbose: Boolean): Result<Unit> {
   return runCatching {
     val baseDir = projectDir + (if (projectDir.isNotBlank() && !projectDir.endsWith('/')) "/" else "") + filePattern.substringBefore('*')
-    val pattern = "*" + filePattern.substringAfter('*', "")
+
+    // TODO: allows you to "/**/*.xml" or "/actual-file.xml" but not just "/*.xml"
+    val pattern = if(!filePattern.contains("*")) baseDir else "*" + filePattern.substringAfter('*', "")
+
+    println("!!!!! baseDir: $baseDir")
+    println("!!!!! filePattern: $filePattern")
+    println("!!!!! matcherPattern: $pattern")
 
     val matcher = FileSystems.getDefault().getPathMatcher("glob:$pattern")
 
