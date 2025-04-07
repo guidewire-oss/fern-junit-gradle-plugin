@@ -47,18 +47,21 @@ fernPublisher {
   reportPaths.set(listOf("build/test-results/**/*.xml"))
   fernTags.set(listOf("automated", "integration"))
   verbose.set(false)
+  failOnError.set(false)
 }
 ```
 
 ### Parameters
 
-| Property    | Description                                  | Required | Default    |
-|-------------|----------------------------------------------|----------|------------|
-| fernUrl     | URL of your Fern instance                    | Yes      | -          |
-| projectName | Name of your project in Fern                 | Yes      | -          |
-| reportPaths | Glob patterns for locating JUnit XML reports | Yes      | -          |
-| fernTags    | Tags to apply to all tests                   | No       | empty list |
-| verbose     | Enable verbose logging                       | No       | false      |
+| Property    | Description                                                        | Required | Default    |
+|-------------|--------------------------------------------------------------------|----------|------------|
+| fernUrl     | URL of your Fern instance                                          | Yes      | -          |
+| projectName | Name of your project in Fern                                       | Yes      | -          |
+| reportPaths | Glob patterns for locating JUnit XML reports                       | Yes      | -          |
+| fernTags    | Tags to apply to all tests                                         | No       | empty list |
+| verbose     | Enable verbose logging                                             | No       | false      |
+| failOnError | When true, will fail when error is thrown. Errors will always log. | No       | false      |
+
 
 ## Usage
 
