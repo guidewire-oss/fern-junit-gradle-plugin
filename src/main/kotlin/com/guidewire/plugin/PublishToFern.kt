@@ -17,7 +17,12 @@ abstract class PublishToFern : DefaultTask() {
   abstract val fernUrl: Property<String>
 
   @get:Input
+  @get:Optional
   abstract val projectName: Property<String>
+
+  @get:Input
+  @get:Optional
+  abstract val projectId: Property<String>
 
   @get:Input
   abstract val reportPaths: ListProperty<String>
@@ -42,17 +47,29 @@ abstract class PublishToFern : DefaultTask() {
     verbose.convention(false)
     description = "Publish test results to your Fern instance"
     failOnError.convention(false)
+    projectName.convention("")
+    projectId.convention("")
   }
 
   @TaskAction
   fun execute() {
-    val isVerbose = verbose.get()
     val projectName = projectName.get()
+    val projectId = projectId.get()
+
+    if(projectName.isBlank() && projectId.isBlank()) {
+      throw IllegalArgumentException("a projectId or a projectName must be specified")
+    }
+
+    val isVerbose = verbose.get()
     val fernUrl = (fernUrl.get() as String).removeSuffix("/")
     val tagsString = fernTags.get().joinToString(",")
 
     logger.lifecycle("Executing PublishToFern")
-    logger.lifecycle("Project name: $projectName")
+    if(projectName.isNotBlank()) {
+      logger.lifecycle("Project name: $projectName")
+    } else {
+      logger.lifecycle("Project ID: $projectId")
+    }
     logger.lifecycle("Publishing to Fern instance at: $fernUrl")
 
     if (reportPaths.get().isEmpty()) {
@@ -68,6 +85,7 @@ abstract class PublishToFern : DefaultTask() {
     // Create TestRun object
     val testRun = TestRun(
       testProjectName = projectName,
+      testProjectId = projectId,
       testSeed = Random().nextLong(0, Long.MAX_VALUE),
     )
 

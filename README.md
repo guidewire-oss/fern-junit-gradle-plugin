@@ -6,7 +6,9 @@ A Gradle plugin for publishing JUnit test results to a Fern test reporting insta
 
 ## Overview
 
-This plugin simplifies the process of collecting JUnit XML test reports and publishing them to a Fern test reporting service. It parses JUnit XML reports, converts them to Fern's data model, and sends them to your Fern instance through its API.
+This plugin simplifies the process of collecting JUnit XML test reports and publishing them to a Fern test reporting
+service. It parses JUnit XML reports, converts them to Fern's data model, and sends them to your Fern instance through
+its API.
 
 To learn more about Fern, check out [its repository](https://github.com/guidewire-oss/fern-reporter)
 
@@ -32,17 +34,54 @@ Or in `build.gradle`:
 
 ```groovy
 plugins {
-  id 'com.guidewire.fern-publisher' version '1.0.0'
+    id 'com.guidewire.fern-publisher' version '1.0.0'
 }
 ```
 
 ## Configuration
+
+### Register your application with fern
+
+Newer versions of the Fern Reporter server require you to pre-register your application to receive a UUID (your project id)
+
+1. To register your project send a `POST` request to `<yourFernUrl>/projects/create` with JSON body of 
+```json
+{
+  "ProjectName": "my-project",
+  "TeamName": "Dev Team",
+  "Comment": "Initial project registration"
+}
+```
+
+Here is an example curl command for ease of use:
+```shell
+curl -X POST "https://yourFernUrl.com/projects/create" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ProjectName": "my-project",
+    "TeamName": "Dev Team",
+    "Comment": "Initial project registration"
+  }'
+```
+
+2. You will receive a successful response that looks like:
+```json
+{
+  "ProjectName": "my-project",
+  "ProjectID": "6ba7b812-9dad-11d1-80b4-00c04fd430c8"
+}
+```
+
+You will need to take note of the returned `ProjectID` UUID for use in configuring the plugin, as described below
+
+### Plugin Setup 
 
 Configure the plugin in your build script:
 
 ```kotlin
 fernPublisher {
   fernUrl.set("https://your-fern-instance.example.com")
+  projectId.set("6ba7b812-9dad-11d1-80b4-00c04fd430c8")
   projectName.set("my-project")
   reportPaths.set(listOf("build/test-results/**/*.xml"))
   fernTags.set(listOf("automated", "integration"))
@@ -53,15 +92,16 @@ fernPublisher {
 
 ### Parameters
 
-| Property    | Description                                                        | Required | Default    |
-|-------------|--------------------------------------------------------------------|----------|------------|
-| fernUrl     | URL of your Fern instance                                          | Yes      | -          |
-| projectName | Name of your project in Fern                                       | Yes      | -          |
-| reportPaths | Glob patterns for locating JUnit XML reports                       | Yes      | -          |
-| fernTags    | Tags to apply to all tests                                         | No       | empty list |
-| verbose     | Enable verbose logging                                             | No       | false      |
-| failOnError | When true, will fail when error is thrown. Errors will always log. | No       | false      |
-
+| Property    | Description                                                                                                                                                               | Required | Default    |
+|-------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|------------|
+| fernUrl     | URL of your Fern instance                                                                                                                                                 | Yes      | -          |
+| projectId   | The id of your project supplied by registering a project in Fern.                                                                                                         | No*      | ""         |
+| projectName | Name of your project in Fern                                                                                                                                              | No*      | ""         |
+|             | * **NOTE:** you must include a projectName or a projectID (or both). Newer versions of the Fern Reporting server require you to pre-register your project to obtain an ID |          |            |
+| reportPaths | Glob patterns for locating JUnit XML reports                                                                                                                              | Yes      | -          |
+| fernTags    | Tags to apply to all tests                                                                                                                                                | No       | empty list |
+| verbose     | Enable verbose logging                                                                                                                                                    | No       | false      |
+| failOnError | When true, will fail when error is thrown. Errors will always log.                                                                                                        | No       | false      |
 
 ## Usage
 
