@@ -7,6 +7,7 @@ import org.gradle.api.provider.Property
 abstract class FernPublisherExtension {
   abstract val fernUrl: Property<String>
   abstract val projectName: Property<String>
+  abstract val projectId: Property<String>
   abstract val reportPaths: ListProperty<String>
   abstract val fernTags: ListProperty<String>
   abstract val verbose: Property<Boolean>
@@ -16,5 +17,6 @@ abstract class FernPublisherExtension {
     fernTags.convention(listOf())
     verbose.convention(false)
     failOnError.convention(false)
+    projectName.convention("")
   }
 }

@@ -12,6 +12,9 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -233,5 +236,74 @@ class FernPublisherPluginTest {
 
         // Verify task execution
         assertThat(result.output).contains("Failed to parse reports")
+    }
+
+    @Test
+    fun `task should fail when both projectName and projectID are not configured`() {
+        buildFile.writeText(
+            """
+            plugins {
+                id("com.guidewire.fern-publisher")
+            }
+            
+            fernPublisher {
+                fernUrl.set("http://localhost:${wireMockServer.port()}")
+                reportPaths.set(listOf("build/test-results/fakePath/**/*.xml"))
+                verbose.set(true)
+                failOnError.set(true)
+            }
+        """.trimIndent()
+        )
+
+        val result = GradleRunner.create()
+            .withProjectDir(projectDir.toFile())
+            .withPluginClasspath()
+            .withArguments("publishToFern", "--stacktrace")
+            .buildAndFail()
+
+        // Verify task execution
+        assertThat(result.output).contains("a projectId or a projectName must be specified")
+    }
+
+
+    @ParameterizedTest
+    @CsvSource(
+        "projectName,",
+        ",projectId",
+        "projectName,projectId"
+    )
+    fun `task should accept either projectName, projectId, or both`(projectName: String?, projectId: String?) {
+
+        buildFile.writeText(
+            """
+            plugins {
+                id("com.guidewire.fern-publisher")
+            }
+            
+            fernPublisher {
+                fernUrl.set("http://localhost:${wireMockServer.port()}")
+                projectName.set("${projectName}")
+                projectId.set("${projectId}")
+                reportPaths.set(listOf("build/test-results/test/**/*.xml"))
+                verbose.set(true)
+            }
+        """.trimIndent()
+        )
+
+        val result = GradleRunner.create()
+            .withProjectDir(projectDir.toFile())
+            .withPluginClasspath()
+            .withArguments("publishToFern", "--stacktrace")
+            .build()
+
+        // Verify task execution
+        assertTrue(result.output.contains("Executing PublishToFern"))
+        assertTrue(result.output.contains("Successfully published test results to Fern"))
+
+        // Verify the API was called
+        verify(
+            postRequestedFor(urlEqualTo("/api/testrun/"))
+                .withHeader("Content-Type", equalTo("application/json"))
+        )
     }
 }
