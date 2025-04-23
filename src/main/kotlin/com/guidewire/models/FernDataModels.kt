@@ -7,6 +7,7 @@ import java.time.ZonedDateTime
 data class TestRun(
   var id: Long = 0,
   var testProjectName: String = "",
+  var testProjectId: String = "",
   var testSeed: Long = 0,
   @Serializable(with = KZoneDateTimeSerializer::class) var startTime: ZonedDateTime? = null,
   @Serializable(with = KZoneDateTimeSerializer::class) var endTime: ZonedDateTime? = null,
