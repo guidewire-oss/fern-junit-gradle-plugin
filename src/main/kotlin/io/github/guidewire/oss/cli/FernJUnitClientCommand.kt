@@ -1,4 +1,4 @@
-package com.guidewire.cli
+package io.github.guidewire.oss.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context

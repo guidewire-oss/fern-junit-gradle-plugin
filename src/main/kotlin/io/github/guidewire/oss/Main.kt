@@ -1,11 +1,11 @@
-package com.guidewire
+package io.github.guidewire.oss
 
 import com.github.ajalt.clikt.completion.completionOption
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.versionOption
-import com.guidewire.cli.FernJUnitClientCommand
-import com.guidewire.cli.SendCommand
+import io.github.guidewire.oss.cli.FernJUnitClientCommand
+import io.github.guidewire.oss.cli.SendCommand
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {

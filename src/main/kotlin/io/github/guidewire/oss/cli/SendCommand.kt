@@ -1,4 +1,4 @@
-package com.guidewire.cli
+package io.github.guidewire.oss.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
@@ -6,9 +6,9 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
-import com.guidewire.models.TestRun
-import com.guidewire.parseReports
-import com.guidewire.sendTestRun
+import io.github.guidewire.oss.models.TestRun
+import io.github.guidewire.oss.parseReports
+import io.github.guidewire.oss.sendTestRun
 import java.util.Date
 import kotlin.system.exitProcess
 
