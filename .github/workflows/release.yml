@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         include:
           - os: ubuntu-latest
             graalvm-home: /usr/lib/graalvm
@@ -46,15 +46,13 @@ jobs:
         with:
           name: native-executable-${{ matrix.os }}
           path: build/native-image/fern-junit-client*
-
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
-          name: native-executable-${{ matrix.os }}
           path: artifacts
 
       - name: Create GitHub Release
