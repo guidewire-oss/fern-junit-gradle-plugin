@@ -1,4 +1,4 @@
-package com.guidewire.plugin
+package io.github.guidewire.oss.plugin
 
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property

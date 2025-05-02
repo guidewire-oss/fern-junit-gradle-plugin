@@ -1,9 +1,9 @@
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
-import com.guidewire.models.SuiteRun
-import com.guidewire.models.TestRun
-import com.guidewire.sendTestRun
+import io.github.guidewire.oss.models.SuiteRun
+import io.github.guidewire.oss.models.TestRun
+import io.github.guidewire.oss.sendTestRun
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach

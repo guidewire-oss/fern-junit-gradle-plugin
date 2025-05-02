@@ -1,4 +1,4 @@
-package com.guidewire.models
+package io.github.guidewire.oss.models
 
 import kotlinx.serialization.Serializable
 import java.time.ZonedDateTime

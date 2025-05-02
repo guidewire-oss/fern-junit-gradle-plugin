@@ -1,16 +1,11 @@
-package com.guidewire
+package io.github.guidewire.oss
 
-import com.guidewire.models.*
-import com.guidewire.util.GlobalClock
+import io.github.guidewire.oss.models.*
+import io.github.guidewire.oss.util.GlobalClock
 import org.w3c.dom.Element
 import org.xml.sax.InputSource
 import java.io.File
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.NoSuchFileException
-import java.nio.file.Path
-import java.nio.file.PathMatcher
-import java.nio.file.Paths
+import java.nio.file.*
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter

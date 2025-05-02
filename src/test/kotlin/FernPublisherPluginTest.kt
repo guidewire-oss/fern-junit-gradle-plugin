@@ -1,8 +1,8 @@
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
-import com.guidewire.plugin.FernPublisherExtension
-import com.guidewire.plugin.PublishToFern
+import io.github.guidewire.oss.plugin.FernPublisherExtension
+import io.github.guidewire.oss.plugin.PublishToFern
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testkit.runner.GradleRunner
@@ -21,32 +21,32 @@ import java.nio.file.Path
 
 class FernPublisherPluginTest {
 
-    @TempDir
-    lateinit var projectDir: Path
+  @TempDir
+  lateinit var projectDir: Path
 
-    private lateinit var buildFile: File
-    private lateinit var testReportDir: File
-    private lateinit var wireMockServer: WireMockServer
+  private lateinit var buildFile: File
+  private lateinit var testReportDir: File
+  private lateinit var wireMockServer: WireMockServer
 
-    @BeforeEach
-    fun setup() {
-        buildFile = projectDir.resolve("build.gradle.kts").toFile()
-        testReportDir = projectDir.resolve("build/test-results/test").toFile()
-        testReportDir.mkdirs()
+  @BeforeEach
+  fun setup() {
+    buildFile = projectDir.resolve("build.gradle.kts").toFile()
+    testReportDir = projectDir.resolve("build/test-results/test").toFile()
+    testReportDir.mkdirs()
 
-        // Start mock server
-        wireMockServer = WireMockServer(wireMockConfig().dynamicPort())
-        wireMockServer.start()
-        configureFor("localhost", wireMockServer.port())
+    // Start mock server
+    wireMockServer = WireMockServer(wireMockConfig().dynamicPort())
+    wireMockServer.start()
+    configureFor("localhost", wireMockServer.port())
 
-        // Stub the API endpoint
-        stubFor(
-            post(urlEqualTo("/api/testrun/"))
-                .willReturn(aResponse().withStatus(200))
-        )
+    // Stub the API endpoint
+    stubFor(
+      post(urlEqualTo("/api/testrun/"))
+        .willReturn(aResponse().withStatus(200))
+    )
 
-        // Create sample test report
-        val sampleXml = """
+    // Create sample test report
+    val sampleXml = """
             <?xml version="1.0" encoding="UTF-8"?>
             <testsuite name="SampleTest" tests="2" failures="0" errors="0" skipped="0" time="1.234">
                 <testcase name="testOne" time="0.5"/>
@@ -54,46 +54,47 @@ class FernPublisherPluginTest {
             </testsuite>
         """.trimIndent()
 
-        val reportFile = testReportDir.resolve("TEST-SampleTest.xml")
-        Files.write(reportFile.toPath(), sampleXml.toByteArray())
+    val reportFile = testReportDir.resolve("TEST-SampleTest.xml")
+    Files.write(reportFile.toPath(), sampleXml.toByteArray())
+  }
+
+  @AfterEach
+  fun tearDown() {
+    wireMockServer.stop()
+  }
+
+  @Test
+  fun `plugin should apply correctly to project`() {
+    val project = ProjectBuilder.builder().build()
+    project.plugins.apply("io.github.guidewire-oss.fern-publisher")
+
+    assertTrue(project.tasks.findByName("publishToFern") is PublishToFern)
+  }
+
+  @Test
+  fun `plugin extension should configure task properties`() {
+    val project = ProjectBuilder.builder().build()
+    project.plugins.apply("io.github.guidewire-oss.fern-publisher")
+
+    project.extensions.configure<FernPublisherExtension>("fernPublisher") {
+      it.fernUrl.set("http://example.com")
+      it.projectName.set("test-project")
+      it.reportPaths.set(listOf("build/reports/**/*.xml"))
     }
 
-    @AfterEach
-    fun tearDown() {
-        wireMockServer.stop()
-    }
+    val task = project.tasks.findByName("publishToFern") as PublishToFern
 
-    @Test
-    fun `plugin should apply correctly to project`() {
-        val project = ProjectBuilder.builder().build()
-        project.plugins.apply("com.guidewire.fern-publisher")
+    assertThat(task.fernUrl.get()).isEqualTo("http://example.com")
+    assertThat(task.projectName.get()).isEqualTo("test-project")
+    assertThat(task.reportPaths.get()).isEqualTo(listOf("build/reports/**/*.xml"))
+  }
 
-        assertTrue(project.tasks.findByName("publishToFern") is PublishToFern)
-    }
-
-    @Test
-    fun `plugin extension should configure task properties`() {
-        val project = ProjectBuilder.builder().build()
-        project.plugins.apply("com.guidewire.fern-publisher")
-
-        project.extensions.configure<FernPublisherExtension>("fernPublisher") {
-            it.fernUrl.set("http://example.com")
-            it.projectName.set("test-project")
-            it.reportPaths.set(listOf("build/reports/**/*.xml"))
-        }
-
-        val task = project.tasks.findByName("publishToFern") as PublishToFern
-        assertEquals("http://example.com", task.fernUrl.get())
-        assertEquals("test-project", task.projectName.get())
-        assertEquals(listOf("build/reports/**/*.xml"), task.reportPaths.get())
-    }
-
-    @Test
-    fun `task should successfully publish test results`() {
-        buildFile.writeText(
-            """
+  @Test
+  fun `task should successfully publish test results`() {
+    buildFile.writeText(
+      """
             plugins {
-                id("com.guidewire.fern-publisher")
+                id("io.github.guidewire-oss.fern-publisher")
             }
             
             fernPublisher {
@@ -103,38 +104,38 @@ class FernPublisherPluginTest {
                 verbose.set(true)
             }
         """.trimIndent()
-        )
+    )
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir.toFile())
-            .withPluginClasspath()
-            .withArguments("publishToFern", "--stacktrace")
-            .build()
+    val result = GradleRunner.create()
+      .withProjectDir(projectDir.toFile())
+      .withPluginClasspath()
+      .withArguments("publishToFern", "--stacktrace")
+      .build()
 
-        // Verify task execution
-        assertTrue(result.output.contains("Executing PublishToFern"))
-        assertTrue(result.output.contains("Successfully published test results to Fern"))
+    // Verify task execution
+    assertThat(result.output).contains("Executing PublishToFern")
+    assertThat(result.output).contains("Successfully published test results to Fern")
 
-        // Verify the API was called
-        verify(
-            postRequestedFor(urlEqualTo("/api/testrun/"))
-                .withHeader("Content-Type", equalTo("application/json"))
-        )
-    }
+    // Verify the API was called
+    verify(
+      postRequestedFor(urlEqualTo("/api/testrun/"))
+        .withHeader("Content-Type", equalTo("application/json"))
+    )
+  }
 
-    @Test
-    fun `task should handle API errors`() {
-        // Reset stub to return an error
-        reset()
-        stubFor(
-            post(urlEqualTo("/api/testrun/"))
-                .willReturn(aResponse().withStatus(500))
-        )
+  @Test
+  fun `task should handle API errors`() {
+    // Reset stub to return an error
+    reset()
+    stubFor(
+      post(urlEqualTo("/api/testrun/"))
+        .willReturn(aResponse().withStatus(500))
+    )
 
-        buildFile.writeText(
-            """
+    buildFile.writeText(
+      """
             plugins {
-                id("com.guidewire.fern-publisher")
+                id("io.github.guidewire-oss.fern-publisher")
             }
             
             fernPublisher {
@@ -144,24 +145,24 @@ class FernPublisherPluginTest {
                 failOnError.set(true)
             }
         """.trimIndent()
-        )
+    )
 
-        val runner = GradleRunner.create()
-            .withProjectDir(projectDir.toFile())
-            .withPluginClasspath()
-            .withArguments("publishToFern")
+    val runner = GradleRunner.create()
+      .withProjectDir(projectDir.toFile())
+      .withPluginClasspath()
+      .withArguments("publishToFern")
 
-        val result = runner.buildAndFail()
+    val result = runner.buildAndFail()
 
-        assertTrue(result.output.contains("Failed to publish test results to Fern"))
-    }
+    assertThat(result.output).contains("Failed to publish test results to Fern")
+  }
 
-    @Test
-    fun `task should handle missing report files`() {
-        buildFile.writeText(
-            """
+  @Test
+  fun `task should handle missing report files`() {
+    buildFile.writeText(
+      """
             plugins {
-                id("com.guidewire.fern-publisher")
+                id("io.github.guidewire-oss.fern-publisher")
             }
             
             fernPublisher {
@@ -171,113 +172,113 @@ class FernPublisherPluginTest {
                 failOnError.set(true)
             }
         """.trimIndent()
-        )
-
-        val runner = GradleRunner.create()
-            .withProjectDir(projectDir.toFile())
-            .withPluginClasspath()
-            .withArguments("publishToFern")
-
-        val result = runner.buildAndFail()
-
-        assertTrue(result.output.contains("No files found"))
-    }
-
-    @Test
-    fun `task should fail when failOnError is true`() {
-        buildFile.writeText(
-            """
-            plugins {
-                id("com.guidewire.fern-publisher")
-            }
-            
-            fernPublisher {
-                fernUrl.set("http://localhost:${wireMockServer.port()}")
-                projectName.set("test-project")
-                reportPaths.set(listOf("build/test-results/fakePath/**/*.xml"))
-                verbose.set(true)
-                failOnError.set(true)
-            }
-        """.trimIndent()
-        )
-
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir.toFile())
-            .withPluginClasspath()
-            .withArguments("publishToFern", "--stacktrace")
-            .buildAndFail()
-
-        // Verify task execution
-        assertThat(result.output).contains("Failed to parse reports")
-    }
-
-    @Test
-    fun `task should NOT fail when failOnError is false but still log errors`() {
-        buildFile.writeText(
-            """
-            plugins {
-                id("com.guidewire.fern-publisher")
-            }
-            
-            fernPublisher {
-                fernUrl.set("http://localhost:${wireMockServer.port()}")
-                projectName.set("test-project")
-                reportPaths.set(listOf("build/test-results/fakePath/**/*.xml"))
-                verbose.set(true)
-            }
-        """.trimIndent()
-        )
-
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir.toFile())
-            .withPluginClasspath()
-            .withArguments("publishToFern", "--stacktrace")
-            .build()
-
-        // Verify task execution
-        assertThat(result.output).contains("Failed to parse reports")
-    }
-
-    @Test
-    fun `task should fail when both projectName and projectID are not configured`() {
-        buildFile.writeText(
-            """
-            plugins {
-                id("com.guidewire.fern-publisher")
-            }
-            
-            fernPublisher {
-                fernUrl.set("http://localhost:${wireMockServer.port()}")
-                reportPaths.set(listOf("build/test-results/fakePath/**/*.xml"))
-                verbose.set(true)
-                failOnError.set(true)
-            }
-        """.trimIndent()
-        )
-
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir.toFile())
-            .withPluginClasspath()
-            .withArguments("publishToFern", "--stacktrace")
-            .buildAndFail()
-
-        // Verify task execution
-        assertThat(result.output).contains("a projectId or a projectName must be specified")
-    }
-
-
-    @ParameterizedTest
-    @CsvSource(
-        "projectName,",
-        ",projectId",
-        "projectName,projectId"
     )
-    fun `task should accept either projectName, projectId, or both`(projectName: String?, projectId: String?) {
 
-        buildFile.writeText(
-            """
+    val runner = GradleRunner.create()
+      .withProjectDir(projectDir.toFile())
+      .withPluginClasspath()
+      .withArguments("publishToFern")
+
+    val result = runner.buildAndFail()
+
+    assertThat(result.output).contains("No files found")
+  }
+
+  @Test
+  fun `task should fail when failOnError is true`() {
+    buildFile.writeText(
+      """
             plugins {
-                id("com.guidewire.fern-publisher")
+                id("io.github.guidewire-oss.fern-publisher")
+            }
+            
+            fernPublisher {
+                fernUrl.set("http://localhost:${wireMockServer.port()}")
+                projectName.set("test-project")
+                reportPaths.set(listOf("build/test-results/fakePath/**/*.xml"))
+                verbose.set(true)
+                failOnError.set(true)
+            }
+        """.trimIndent()
+    )
+
+    val result = GradleRunner.create()
+      .withProjectDir(projectDir.toFile())
+      .withPluginClasspath()
+      .withArguments("publishToFern", "--stacktrace")
+      .buildAndFail()
+
+    // Verify task execution
+    assertThat(result.output).contains("Failed to parse reports")
+  }
+
+  @Test
+  fun `task should NOT fail when failOnError is false but still log errors`() {
+    buildFile.writeText(
+      """
+            plugins {
+                id("io.github.guidewire-oss.fern-publisher")
+            }
+            
+            fernPublisher {
+                fernUrl.set("http://localhost:${wireMockServer.port()}")
+                projectName.set("test-project")
+                reportPaths.set(listOf("build/test-results/fakePath/**/*.xml"))
+                verbose.set(true)
+            }
+        """.trimIndent()
+    )
+
+    val result = GradleRunner.create()
+      .withProjectDir(projectDir.toFile())
+      .withPluginClasspath()
+      .withArguments("publishToFern", "--stacktrace")
+      .build()
+
+    // Verify task execution
+    assertThat(result.output).contains("Failed to parse reports")
+  }
+
+  @Test
+  fun `task should fail when both projectName and projectID are not configured`() {
+    buildFile.writeText(
+      """
+            plugins {
+                id("io.github.guidewire-oss.fern-publisher")
+            }
+            
+            fernPublisher {
+                fernUrl.set("http://localhost:${wireMockServer.port()}")
+                reportPaths.set(listOf("build/test-results/fakePath/**/*.xml"))
+                verbose.set(true)
+                failOnError.set(true)
+            }
+        """.trimIndent()
+    )
+
+    val result = GradleRunner.create()
+      .withProjectDir(projectDir.toFile())
+      .withPluginClasspath()
+      .withArguments("publishToFern", "--stacktrace")
+      .buildAndFail()
+
+    // Verify task execution
+    assertThat(result.output).contains("a projectId or a projectName must be specified")
+  }
+
+
+  @ParameterizedTest
+  @CsvSource(
+    "projectName,",
+    ",projectId",
+    "projectName,projectId"
+  )
+  fun `task should accept either projectName, projectId, or both`(projectName: String?, projectId: String?) {
+
+    buildFile.writeText(
+      """
+            plugins {
+                id("io.github.guidewire-oss.fern-publisher")
             }
             
             fernPublisher {
@@ -288,22 +289,22 @@ class FernPublisherPluginTest {
                 verbose.set(true)
             }
         """.trimIndent()
-        )
+    )
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir.toFile())
-            .withPluginClasspath()
-            .withArguments("publishToFern", "--stacktrace")
-            .build()
+    val result = GradleRunner.create()
+      .withProjectDir(projectDir.toFile())
+      .withPluginClasspath()
+      .withArguments("publishToFern", "--stacktrace")
+      .build()
 
-        // Verify task execution
-        assertTrue(result.output.contains("Executing PublishToFern"))
-        assertTrue(result.output.contains("Successfully published test results to Fern"))
+    // Verify task execution
+    assertThat(result.output).contains("Executing PublishToFern")
+    assertThat(result.output).contains("Successfully published test results to Fern")
 
-        // Verify the API was called
-        verify(
-            postRequestedFor(urlEqualTo("/api/testrun/"))
-                .withHeader("Content-Type", equalTo("application/json"))
-        )
-    }
+    // Verify the API was called
+    verify(
+      postRequestedFor(urlEqualTo("/api/testrun/"))
+        .withHeader("Content-Type", equalTo("application/json"))
+    )
+  }
 }

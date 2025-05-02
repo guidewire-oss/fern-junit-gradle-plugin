@@ -1,7 +1,7 @@
-import com.guidewire.models.TestRun
-import com.guidewire.parseReports
-import com.guidewire.util.GlobalClock
-import com.guidewire.util.MockClock
+import io.github.guidewire.oss.models.TestRun
+import io.github.guidewire.oss.parseReports
+import io.github.guidewire.oss.util.GlobalClock
+import io.github.guidewire.oss.util.MockClock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

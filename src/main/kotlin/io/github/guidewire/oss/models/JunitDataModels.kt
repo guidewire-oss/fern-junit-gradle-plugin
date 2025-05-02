@@ -1,4 +1,4 @@
-package com.guidewire.models
+package io.github.guidewire.oss.models
 
 import org.gradle.internal.impldep.kotlinx.serialization.SerialName
 import org.gradle.internal.impldep.kotlinx.serialization.Serializable
@@ -44,22 +44,22 @@ data class TestSuite(
 
 @Serializable
 data class TestCase(
-    @SerialName("name")
+  @SerialName("name")
     val name: String = "",
 
-    @SerialName("classname")
+  @SerialName("classname")
     val className: String = "",
 
-    @SerialName("time")
+  @SerialName("time")
     val time: String = "",
 
-    @SerialName("failure")
+  @SerialName("failure")
     val failures: List<Failure> = emptyList(),
 
-    @SerialName("error")
+  @SerialName("error")
     val errors: List<Error> = emptyList(),
 
-    @SerialName("skipped")
+  @SerialName("skipped")
     val skips: List<Skip> = emptyList()
 ) {
     @Serializable
