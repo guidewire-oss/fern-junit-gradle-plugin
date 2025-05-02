@@ -1,0 +1,68 @@
+name: Build and Publish Native Executables
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on version tags (e.g., v1.0.0)
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            graalvm-home: /usr/lib/graalvm
+          - os: windows-latest
+            graalvm-home: C:\graalvm
+          - os: macos-latest
+            graalvm-home: /Library/Java/JavaVirtualMachines/graalvm
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Set GRAALVM_HOME
+        run: echo "GRAALVM_HOME=${{ matrix.graalvm-home }}" >> $GITHUB_ENV
+
+      - name: Install GraalVM Native Image
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graalvm-native-image
+
+      - name: Build native executable
+        run: ./gradlew nativeImage
+
+      - name: Upload native executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: native-executable-${{ matrix.os }}
+          path: build/native-image/fern-junit-client*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: native-executable-${{ matrix.os }}
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: artifacts/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            Native executables for all platforms.
