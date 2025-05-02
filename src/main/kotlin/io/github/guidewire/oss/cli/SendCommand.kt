@@ -18,16 +18,11 @@ class SendCommand : CliktCommand(
     return "Send JUnit test reports to Fern"
   }
 
-  private val fernUrl by option("-u", "--fern-url", help = "Base URL of the Fern Reporter instance to send test reports to")
-    .required()
-
-  private val projectName by option("-p", "--project-name", help = "Name of the project to associate test reports with")
-    .required()
-
+  private val fernUrl by option("-u", "--fern-url", help = "Base URL of the Fern Reporter instance to send test reports to").required()
+  private val projectName by option("-n", "--project-name", help = "Name of the project to associate test reports with").required()
+  private val projectId by option("-i", "--project-id", help = "ID of the project to associate test reports with").required()
   private val filePatterns: List<String> by option("-f", "--file-pattern", help = "File name pattern of test reports to send to Fern").multiple(required = true)
-
   private val tags by option("-t", "--tags", help = "Comma-separated tags to be included on runs")
-
   private val verbose by option("-v", "--verbose", help = "Enable verbose output").flag()
 
   override fun run() {
@@ -37,6 +32,7 @@ class SendCommand : CliktCommand(
       val testRun = TestRun(
         testProjectName = projectName,
         testSeed = System.currentTimeMillis(),
+        testProjectId = projectId,
       )
 
       // Process each report path
@@ -66,6 +62,11 @@ class SendCommand : CliktCommand(
       }
 
       echo("Found ${testRun.suiteRuns.size} test suites with a total of ${testRun.suiteRuns.sumOf { it.specRuns.size }} test specs")
+
+      if (!fernUrl.startsWith("http")) {
+        echo("ERROR: Fern URL must start with 'http' or 'https'", err = true)
+        exitProcess(1)
+      }
 
       sendTestRun(testRun, fernUrl, verbose).fold(
         onSuccess = {

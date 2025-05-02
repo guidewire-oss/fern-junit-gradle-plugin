@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
   val inputStream = object {}.javaClass.getResourceAsStream("/app.properties")
   inputStream?.use { properties.load(it) }
 
-  val version = properties.getProperty("appVersion")
+  val version = properties.getProperty("appVersion", "0.0.0")
 
   try {
     val command = FernJUnitClientCommand()
@@ -23,7 +23,7 @@ fun main(args: Array<String>) {
       .completionOption()
     command.main(args)
   } catch (e: Exception) {
-    System.err.println("ERROR: ${e.message}")
+    System.err.println("ERROR: [${e::class.simpleName}] ${e.message}")
     exitProcess(1)
   }
 }

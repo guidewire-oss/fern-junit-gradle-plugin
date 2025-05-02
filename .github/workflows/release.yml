@@ -64,7 +64,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          draft: "${{ github.event.inputs.fast-release }}"
+          draft: "${{ github.event.inputs.draft-release }}"
           generateReleaseNotes: true
           artifacts: artifacts/**
           #token: ${{ secrets.GITHUB_TOKEN }}
