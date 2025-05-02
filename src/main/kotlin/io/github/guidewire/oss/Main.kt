@@ -6,14 +6,20 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.versionOption
 import io.github.guidewire.oss.cli.FernJUnitClientCommand
 import io.github.guidewire.oss.cli.SendCommand
+import java.util.Properties
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
+  val properties = Properties()
+  val inputStream = object {}.javaClass.getResourceAsStream("/app.properties")
+  inputStream?.use { properties.load(it) }
+
+  val version = properties.getProperty("appVersion")
 
   try {
     val command = FernJUnitClientCommand()
       .subcommands(SendCommand())
-      .versionOption("0.1.1") //TODO find better way of supplying version here
+      .versionOption(version)
       .completionOption()
     command.main(args)
   } catch (e: Exception) {

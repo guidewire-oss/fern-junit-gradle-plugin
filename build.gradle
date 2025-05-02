@@ -12,7 +12,8 @@ plugins {
 }
 
 group = 'io.github.guidewire-oss'
-version = project.hasProperty('version') ? project.version : '0.2.0-SNAPSHOT'
+version = project.hasProperty('version') ? project.version : '0.0.0-SNAPSHOT'
+
 def os = DefaultNativePlatform.currentOperatingSystem
 def arch = DefaultNativePlatform.currentArchitecture
 
@@ -77,13 +78,23 @@ jar {
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+// Currently just used to pass the version. If you can find a better way of doing this, then go for it
+task generateProps {
+  def propsFile = layout.buildDirectory.file("resources/main/app.properties")
+
+  doLast {
+    file(propsFile.get().asFile).write("appVersion=$version")
+  }
+}
+
 task nativeImage(type: Exec) {
   group = 'build'
   description = 'Builds a native image using GraalVM'
 
-  def outputName = "fern-junit-client-${version}-${os.toFamilyName()}"
+  def outputName = "fern-junit-client-${version}-${os.toFamilyName()}-${arch.name}"
   def graalVmHome = System.getenv('GRAALVM_HOME')
 
+  dependsOn("generateProps")
   dependsOn tasks.jar
 
   doFirst {
