@@ -9,7 +9,6 @@ import com.github.ajalt.clikt.parameters.options.required
 import io.github.guidewire.oss.models.TestRun
 import io.github.guidewire.oss.parseReports
 import io.github.guidewire.oss.sendTestRun
-import java.util.Date
 import kotlin.system.exitProcess
 
 class SendCommand : CliktCommand(
@@ -37,7 +36,7 @@ class SendCommand : CliktCommand(
       // Create TestRun object
       val testRun = TestRun(
         testProjectName = projectName,
-        testSeed = Date().time,
+        testSeed = System.currentTimeMillis(),
       )
 
       // Process each report path
@@ -77,7 +76,7 @@ class SendCommand : CliktCommand(
         }
       )
     } catch (e: Exception) {
-      echo("ERROR: ${e.message}")
+      echo("ERROR: [${e::class.simpleName}] ${e.message}")
       if (verbose) {
         echo("Stack trace: $e", err = true)
       }

@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
   try {
     val command = FernJUnitClientCommand()
       .subcommands(SendCommand())
-      .versionOption("0.1.0") //TODO find better way of supplying version here
+      .versionOption("0.1.1") //TODO find better way of supplying version here
       .completionOption()
     command.main(args)
   } catch (e: Exception) {

@@ -59,12 +59,12 @@ dependencies {
 }
 
 application {
-  mainClass = "com.guidewire.Mainkt"
+  mainClass = "io.github.guidewire.oss.MainKt"
 }
 
 jar {
   manifest {
-    attributes 'Main-Class': 'com.guidewire.MainKt'
+    attributes 'Main-Class': 'io.github.guidewire.oss.MainKt'
   }
   exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA' // NECESSARY TO BUILD JAR
 
@@ -122,18 +122,17 @@ task nativeImage(type: Exec) {
   }
 
   workingDir = "${buildDir}/native-image"
-  def jarName = "native-${project.name}-${project.version}.jar"
+  def jarName = "native-${project.name}-${project.version}-main.jar"
 
   commandLine = [
       "${graalVmHome}/bin/native-image${os.isWindows() ? '.cmd' : ''}",
       '--no-fallback',
       '--enable-url-protocols=https',
-      '-H:+ReportUnsupportedElementsAtRuntime',
       '-H:+ReportExceptionStackTraces',
       '-H:ReflectionConfigurationFiles=../../src/main/resources/reflect-config.json',
       '--initialize-at-build-time=kotlin',
       '--initialize-at-build-time=kotlinx',
-      '--initialize-at-build-time=com.guidewire',
+      '--initialize-at-build-time=io.github.guidewire.oss',
       '--initialize-at-build-time=org.slf4j',
       '--initialize-at-build-time=org.gradle.internal',
       '-jar', jarName,
