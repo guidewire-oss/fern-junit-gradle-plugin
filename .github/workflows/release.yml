@@ -1,9 +1,17 @@
-name: Build and Publish Native Executables
+name: Create new release
 
 on:
-  push:
-    tags:
-      - 'v*' # Trigger on version tags (e.g., v1.0.0)
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag for the release (e.g., 1.0.0)'
+        required: true
+        default: '0.0.0'
+      draft-release:
+        description: 'Should this release be a draft?'
+        type: boolean
+        required: false
+        default: true
 
 jobs:
   build:
@@ -21,46 +29,50 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
         with:
-          java-version: 17
-          distribution: temurin
-
-      - name: Set GRAALVM_HOME
-        run: echo "GRAALVM_HOME=${{ matrix.graalvm-home }}" >> $GITHUB_ENV
-
-      - name: Install GraalVM Native Image
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y graalvm-native-image
+          java-version: '17.0.12'
+          distribution: 'graalvm'
+          #github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build native executable
-        run: ./gradlew nativeImage
+        run: ./gradlew nativeImage -Pversion="${{ github.event.inputs.tag }}"
 
       - name: Upload native executable
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: native-executable-${{ matrix.os }}
           path: build/native-image/fern-junit-client*
+
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
+      - name: Make artifacts executable
+        run: chmod +x artifacts/native-executable-*
+
       - name: Create GitHub Release
+        id: create_release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: artifacts/*
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body: |
-            Native executables for all platforms.
+          allowUpdates: true
+          draft: "${{ github.event.inputs.fast-release }}"
+          generateReleaseNotes: true
+          artifacts: artifacts/**
+          #token: ${{ secrets.GITHUB_TOKEN }}
+          tag: 'v${{ github.event.inputs.tag }}'
+          name: 'v${{ github.event.inputs.tag }}'
+
+      - name: Add release URL to job summary
+        if: success()
+        run: |
+          echo "Release URL: ${{ steps.create_release.outputs.html_url }}"
+          echo "Release URL: ${{ steps.create_release.outputs.html_url }}" >> $GITHUB_STEP_SUMMARY

@@ -12,7 +12,7 @@ plugins {
 }
 
 group = 'io.github.guidewire-oss'
-version = '0.1.1'
+version = project.hasProperty('version') ? project.version : '0.2.0-SNAPSHOT'
 def os = DefaultNativePlatform.currentOperatingSystem
 def arch = DefaultNativePlatform.currentArchitecture
 
@@ -81,7 +81,7 @@ task nativeImage(type: Exec) {
   group = 'build'
   description = 'Builds a native image using GraalVM'
 
-  def outputName = "fern-junit-client${os.isWindows() ? '.exe' : ''}"
+  def outputName = "fern-junit-client-${version}-${os.toFamilyName()}"
   def graalVmHome = System.getenv('GRAALVM_HOME')
 
   dependsOn tasks.jar
