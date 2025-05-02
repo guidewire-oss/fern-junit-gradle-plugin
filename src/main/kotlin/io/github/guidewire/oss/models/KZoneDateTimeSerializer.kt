@@ -1,4 +1,4 @@
-package com.guidewire.models
+package io.github.guidewire.oss.models
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind

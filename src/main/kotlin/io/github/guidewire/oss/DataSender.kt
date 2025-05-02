@@ -1,6 +1,6 @@
-package com.guidewire
+package io.github.guidewire.oss
 
-import com.guidewire.models.TestRun
+import io.github.guidewire.oss.models.TestRun
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNamingStrategy

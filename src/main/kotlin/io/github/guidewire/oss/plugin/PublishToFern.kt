@@ -1,8 +1,8 @@
-package com.guidewire.plugin
+package io.github.guidewire.oss.plugin
 
-import com.guidewire.parseReports
-import com.guidewire.models.TestRun
-import com.guidewire.sendTestRun
+import io.github.guidewire.oss.parseReports
+import io.github.guidewire.oss.models.TestRun
+import io.github.guidewire.oss.sendTestRun
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property

@@ -7,7 +7,7 @@ plugins {
     id 'maven-publish'  // Add this plugin to use publishing block
 }
 
-group = 'com.guidewire'
+group = 'io.github.guidewire-oss'
 version = '0.1.1'
 
 gradlePlugin {
@@ -15,11 +15,11 @@ gradlePlugin {
     vcsUrl = "https://github.com/guidewire-oss/fern-junit-gradle-plugin"
     plugins {
         create("fernPublisher") {
-            id = "com.guidewire.fern-publisher"
+            id = "io.github.guidewire-oss.fern-publisher"
             displayName = 'fern-publisher'
             description = 'This plugin simplifies the process of collecting JUnit XML test reports and publishing them to a Fern test reporting service. It parses JUnit XML reports, converts them to Fern\'s data model, and sends them to your Fern instance through its API. To learn more about Fern, check out its repository: https://github.com/guidewire-oss/fern-reporter'
             tags = ['testing', 'testing-tools', 'reporter', 'fern', 'test-reporter']
-            implementationClass = "com.guidewire.plugin.FernPublisherPlugin"
+            implementationClass = "io.github.guidewire.oss.plugin.FernPublisherPlugin"
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.guidewire.util
+package io.github.guidewire.oss.util
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
