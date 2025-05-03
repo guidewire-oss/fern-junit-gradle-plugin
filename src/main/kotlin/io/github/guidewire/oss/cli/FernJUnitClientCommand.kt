@@ -11,6 +11,6 @@ class FernJUnitClientCommand : CliktCommand(
   }
 
   override fun run() {
-    // Root command doesn't do anything on its own
+    // Root command doesn't do anything on its own - just prints help message
   }
 }
