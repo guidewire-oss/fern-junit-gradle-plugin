@@ -55,20 +55,24 @@ Newer versions of the Fern Reporter server require you to pre-register your appl
 
 Here is an example curl command for ease of use:
 ```shell
-curl -X POST "https://yourFernUrl.com/projects/create" \
+curl -X POST "https://yourFernUrl.com/api/project" \
   -H "Content-Type: application/json" \
   -d '{
-    "ProjectName": "my-project",
-    "TeamName": "Dev Team",
-    "Comment": "Initial project registration"
+    "name": "my-project",
+    "team_name": "Dev Team",
+    "comment": "Initial project registration"
   }'
 ```
 
 2. You will receive a successful response that looks like:
 ```json
 {
-  "ProjectName": "my-project",
-  "ProjectID": "6ba7b812-9dad-11d1-80b4-00c04fd430c8"
+  "uuid": "996ad860-2a9a-504f-8861-aeafd0b2ae29",
+  "name": "my-project",
+  "team_name": "Dev Team",
+  "comment": "Initial project registration",
+  "created_at": "2025-05-16T15:30:54.831472Z",
+  "updated_at": "2025-05-16T15:30:54.832458Z"
 }
 ```
 
