@@ -14,6 +14,7 @@ class FernPublisherPlugin : Plugin<Project> {
       // Apply values from extension to task if they exist
       extension.fernUrl.orNull?.let { task.fernUrl.set(it) }
       extension.projectName.orNull?.let { task.projectName.set(it) }
+      extension.projectId.orNull?.let { task.projectId.set(it) }
       extension.reportPaths.orNull?.let { task.reportPaths.set(it) }
       extension.fernTags.orNull?.let { task.fernTags.set(it) }
       extension.verbose.orNull?.let { task.verbose.set(it) }
