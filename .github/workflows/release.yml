@@ -1,0 +1,78 @@
+name: Create new release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag for the release (e.g., 1.0.0)'
+        required: true
+        default: '0.0.0'
+      draft-release:
+        description: 'Should this release be a draft?'
+        type: boolean
+        required: false
+        default: true
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        include:
+          - os: ubuntu-latest
+            graalvm-home: /usr/lib/graalvm
+          - os: windows-latest
+            graalvm-home: C:\graalvm
+          - os: macos-latest
+            graalvm-home: /Library/Java/JavaVirtualMachines/graalvm
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '17.0.12'
+          distribution: 'graalvm'
+          #github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build native executable
+        run: ./gradlew nativeImage -Pversion="${{ github.event.inputs.tag }}"
+
+      - name: Upload native executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-executable-${{ matrix.os }}
+          path: build/native-image/fern-junit-client*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Make artifacts executable
+        run: chmod +x artifacts/native-executable-*
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          draft: "${{ github.event.inputs.draft-release }}"
+          generateReleaseNotes: true
+          artifacts: artifacts/**
+          #token: ${{ secrets.GITHUB_TOKEN }}
+          tag: 'v${{ github.event.inputs.tag }}'
+          name: 'v${{ github.event.inputs.tag }}'
+
+      - name: Add release URL to job summary
+        if: success()
+        run: |
+          echo "Release URL: ${{ steps.create_release.outputs.html_url }}"
+          echo "Release URL: ${{ steps.create_release.outputs.html_url }}" >> $GITHUB_STEP_SUMMARY
