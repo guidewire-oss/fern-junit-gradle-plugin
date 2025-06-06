@@ -3,6 +3,7 @@
 A Gradle plugin for publishing JUnit test results to a Fern test reporting instance.
 
 ![example workflow](https://github.com/guidewire-oss/fern-junit-gradle-plugin/actions/workflows/gradle.yml/badge.svg?event=push)
+![plugin](https://img.shields.io/gradle-plugin-portal/v/io.github.guidewire-oss.fern-publisher?label=Gradle%20Plugins%20Portal&color=blue)
 
 ## Overview
 
@@ -44,12 +45,12 @@ plugins {
 
 Newer versions of the Fern Reporter server require you to pre-register your application to receive a UUID (your project id)
 
-1. To register your project send a `POST` request to `<yourFernUrl>/projects/create` with JSON body of 
+1. To register your project send a `POST` request to `<yourFernUrl>/api/project` with JSON body of 
 ```json
 {
-  "ProjectName": "my-project",
-  "TeamName": "Dev Team",
-  "Comment": "Initial project registration"
+  "name": "my-project",
+  "team_name": "Dev Team",
+  "comment": "Initial project registration"
 }
 ```
 
@@ -67,12 +68,12 @@ curl -X POST "https://yourFernUrl.com/api/project" \
 2. You will receive a successful response that looks like:
 ```json
 {
-  "uuid": "996ad860-2a9a-504f-8861-aeafd0b2ae29",
+  "uuid": "59e06cf8-f390-5093-af2e-3685be593a25",
   "name": "my-project",
   "team_name": "Dev Team",
   "comment": "Initial project registration",
-  "created_at": "2025-05-16T15:30:54.831472Z",
-  "updated_at": "2025-05-16T15:30:54.832458Z"
+  "created_at": "2025-06-06T15:00:28.403029Z",
+  "updated_at": "2025-06-06T15:00:28.403682Z"
 }
 ```
 
@@ -87,7 +88,7 @@ fernPublisher {
   fernUrl.set("https://your-fern-instance.example.com")
   projectId.set("6ba7b812-9dad-11d1-80b4-00c04fd430c8")
   projectName.set("my-project")
-  reportPaths.set(listOf("build/test-results/**/*.xml"))
+  reportPaths.set(listOf("build/test-results/test/*.xml"))
   fernTags.set(listOf("automated", "integration"))
   verbose.set(false)
   failOnError.set(false)
@@ -131,7 +132,7 @@ tasks.named("test") {
 fernPublisher {
   fernUrl.set("https://fern.example.com")
   projectName.set("backend-api")
-  reportPaths.set(listOf("build/test-results/**/*.xml"))
+  reportPaths.set(listOf("build/test-results/test/*.xml"))
 }
 ```
 
@@ -143,8 +144,8 @@ fernPublisher {
   projectName.set("full-stack")
   reportPaths.set(
     listOf(
-      "${project.buildDir}/test-results/test/**/*.xml",
-      "frontend/build/test-results/*.xml"
+      "${project.buildDir}/test-results/test/*.xml",
+      "frontend/build/test-results/test/*.xml"
     )
   )
   fernTags.set(listOf("ci", "nightly"))
