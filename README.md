@@ -46,7 +46,7 @@ plugins {
 
 Newer versions of the Fern Reporter server require you to pre-register your application to receive a UUID (your project id)
 
-1. To register your project send a `POST` request to `<yourFernUrl>/project` with JSON body of 
+1. To register your project send a `POST` request to `<yourFernUrl>/api/project` with JSON body of 
 ```json
 {
   "name": "my-project",
