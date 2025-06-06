@@ -84,7 +84,7 @@ fun parseReport(filePath: String, tags: String, verbose: Boolean): Result<List<S
     val content = file.readText()
 
     if (verbose) {
-      println("Parsing $filePath")
+      println("Parsing file: $filePath")
     }
 
     // Create XML document builder
@@ -158,7 +158,7 @@ private fun parseTestSuiteElement(element: Element): TestSuite {
 fun parseTestSuite(testSuite: TestSuite, tags: String, verbose: Boolean): Result<SuiteRun> {
   return runCatching {
     if (verbose) {
-      println("Parsing TestSuite ${testSuite.name}")
+      println("Parsing TestSuite: ${testSuite.name}")
     }
 
     val suiteRun = SuiteRun(suiteName = testSuite.name)
@@ -192,7 +192,7 @@ private fun parseTestCases(suiteRun: SuiteRun, testSuite: TestSuite, verbose: Bo
 
   for (testCase in testSuite.testCases) {
     if (verbose) {
-      println("Parsing TestCase ${testCase.name}")
+      println("Parsing TestCase: ${testCase.name}")
     }
 
     val status = when {
@@ -213,7 +213,6 @@ private fun parseTestCases(suiteRun: SuiteRun, testSuite: TestSuite, verbose: Bo
     }
 
     endTime = getEndTime(startTime, testCase.time).getOrThrow()
-    System.out.println(endTime.format(DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"))))
 
     val specRun = SpecRun(
       specDescription = testCase.name,

@@ -90,7 +90,7 @@ class DataSenderTest {
   @Test
   fun `sendTestRun should handle connection errors`() {
     // Test with non-existent server
-    val result = sendTestRun(testRun, "http://non-existent-server:12345", false)
+    val result = sendTestRun(testRun, "http://non-existent-server:12345", true)
 
     // Verify
     assertTrue(result.isFailure)

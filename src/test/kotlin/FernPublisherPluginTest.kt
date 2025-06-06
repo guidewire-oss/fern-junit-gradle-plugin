@@ -80,6 +80,7 @@ class FernPublisherPluginTest {
       it.fernUrl.set("http://example.com")
       it.projectName.set("test-project")
       it.reportPaths.set(listOf("build/reports/**/*.xml"))
+      it.verbose.set(true)
     }
 
     val task = project.tasks.findByName("publishToFern") as PublishToFern
@@ -87,6 +88,7 @@ class FernPublisherPluginTest {
     assertThat(task.fernUrl.get()).isEqualTo("http://example.com")
     assertThat(task.projectName.get()).isEqualTo("test-project")
     assertThat(task.reportPaths.get()).isEqualTo(listOf("build/reports/**/*.xml"))
+    assertThat(task.verbose.get()).isTrue()
   }
 
   @Test
@@ -143,6 +145,7 @@ class FernPublisherPluginTest {
                 projectName.set("test-project")
                 reportPaths.set(listOf("build/test-results/test/**/*.xml"))
                 failOnError.set(true)
+                verbose.set(true)
             }
         """.trimIndent()
     )
@@ -170,6 +173,7 @@ class FernPublisherPluginTest {
                 projectName.set("test-project")
                 reportPaths.set(listOf("non-existent/**/*.xml"))
                 failOnError.set(true)
+                verbose.set(true)
             }
         """.trimIndent()
     )

@@ -34,7 +34,7 @@ fun sendTestRun(testRun: TestRun, fernUrl: String, verbose: Boolean): Result<Uni
       } else {
         println("Failed to send POST request...")
         if (verbose) {
-          println(response.body())
+          println("Status Code: ${response.statusCode()} with body: ${response.body()}")
         }
       }
     }
@@ -52,10 +52,7 @@ private fun postTestRun(endpoint: String, fernUrl: String, payload: String): Htt
     .POST(HttpRequest.BodyPublishers.ofString(payload))
     .build()
 
-  println("Sending request: $payload")
-
   var response = client.send(request, HttpResponse.BodyHandlers.ofString())
-
   if (response.statusCode() == 307) {
     val locationHeader = response.headers().firstValue("location")
     response = postTestRun(fernUrl + locationHeader, fernUrl, payload)
