@@ -39,7 +39,9 @@ jobs:
           #github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build native executable
-        run: ./gradlew nativeImage -Pversion="${{ github.event.inputs.tag }}"
+        env:
+          VERSION_TAG: ${{ github.event.inputs.tag }}
+        run: ./gradlew nativeImage -Pversion="$VERSION_TAG"
 
       - name: Upload native executable
         uses: actions/upload-artifact@v4
