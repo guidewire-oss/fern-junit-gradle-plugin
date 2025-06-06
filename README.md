@@ -1,6 +1,6 @@
 # Fern JUnit Gradle Plugin
 
-A Gradle plugin for publishing JUnit test results to a Fern test reporting instance.
+A Gradle plugin and CLI for publishing JUnit test results to a Fern test reporting instance.
 
 ![example workflow](https://github.com/guidewire-oss/fern-junit-gradle-plugin/actions/workflows/gradle.yml/badge.svg?event=push)
 ![plugin](https://img.shields.io/gradle-plugin-portal/v/io.github.guidewire-oss.fern-publisher?label=Gradle%20Plugins%20Portal&color=blue)
@@ -35,7 +35,7 @@ Or in `build.gradle`:
 
 ```groovy
 plugins {
-    id 'io.github.guidewire-oss.fern-publisher' version '1.0.0'
+  id 'io.github.guidewire-oss.fern-publisher' version '1.0.0'
 }
 ```
 
@@ -45,7 +45,8 @@ plugins {
 
 Newer versions of the Fern Reporter server require you to pre-register your application to receive a UUID (your project id)
 
-1. To register your project send a `POST` request to `<yourFernUrl>/api/project` with JSON body of 
+1. To register your project send a `POST` request to `<yourFernUrl>/api/project` with JSON body of
+
 ```json
 {
   "name": "my-project",
@@ -55,6 +56,7 @@ Newer versions of the Fern Reporter server require you to pre-register your appl
 ```
 
 Here is an example curl command for ease of use:
+
 ```shell
 curl -X POST "https://yourFernUrl.com/api/project" \
   -H "Content-Type: application/json" \
@@ -66,6 +68,7 @@ curl -X POST "https://yourFernUrl.com/api/project" \
 ```
 
 2. You will receive a successful response that looks like:
+
 ```json
 {
   "uuid": "59e06cf8-f390-5093-af2e-3685be593a25",
@@ -79,7 +82,7 @@ curl -X POST "https://yourFernUrl.com/api/project" \
 
 You will need to take note of the returned `ProjectID` UUID for use in configuring the plugin, as described below
 
-### Plugin Setup 
+### Plugin Setup
 
 Configure the plugin in your build script:
 
@@ -158,6 +161,45 @@ fernPublisher {
 - Kotlin 1.4 or later
 - JUnit 4 and JUnit 5 XML report formats
 
+## Command-Line Interface (CLI)
+
+This project also provides a CLI tool, `fern-junit-client`, for collecting and publishing JUnit XML test reports to a Fern Reporter instance. It is designed to work the same way as the Gradle plugin, but can be used independently of Gradle and Java.
+
+Builds of the CLI binary are available for Linux, macOS, and Windows on the [Releases page](https://github.com/guidewire-oss/fern-junit-gradle-plugin/releases).
+
+### Usage
+
+```sh
+fern-junit-client send \
+  --fern-url <FERN_URL> \
+  --project-name <PROJECT_NAME> \
+  --project-id <PROJECT_ID> \
+  --file-pattern <REPORT_PATTERN> \
+  [--tags <TAGS>] \
+  [--verbose]
+```
+
+#### Options
+
+- `--fern-url` (`-u`): Base URL of the Fern Reporter instance to send test reports to (required)
+- `--project-name` (`-n`): Name of the project to associate test reports with (required)
+- `--project-id` (`-i`): Project ID to associate test reports with (required)
+- `--file-pattern` (`-f`): Glob pattern(s) for JUnit XML reports (can be repeated, required)
+- `--tags` (`-t`): (Optional) Comma-separated tags to include on the test run
+- `--verbose` (`-v`): (Optional) Enable verbose output for debugging
+
+### Example
+
+```sh
+fern-junit-client send \
+  --fern-url https://fern.example.com \
+  --project-name my-service \
+  --project-id 1234 \
+  --file-pattern "build/test-results/**/*.xml" \
+  --tags "ci,nightly" \
+  --verbose
+```
+
 ## Building from Source
 
 ```bash
@@ -186,4 +228,14 @@ pluginManagement {
         mavenCentral()
     }
 }
+```
+### Building the CLI
+Native CLI binaries are built using GraalVM's native-image tool. This allows the CLI to run without requiring a Java runtime, making it lightweight and portable.
+
+For building the CLI, you will need to have GraalVM installed and set the environment variable `GRAALVM_HOME` as your GraalVM install location.
+
+Once that is set up, run the following command in the project root:
+
+```bash
+./gradlew nativeImage -Pversion="1.0.0-SNAPSHOT" 
 ```
