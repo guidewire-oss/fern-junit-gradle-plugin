@@ -3,8 +3,7 @@
 A Gradle plugin for publishing JUnit test results to a Fern test reporting instance.
 
 ![example workflow](https://github.com/guidewire-oss/fern-junit-gradle-plugin/actions/workflows/gradle.yml/badge.svg?event=push)
-
-[Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.github.guidewire-oss.fern-publisher)
+![plugin](https://img.shields.io/gradle-plugin-portal/v/io.github.guidewire-oss.fern-publisher?label=Gradle%20Plugins%20Portal&color=blue)
 
 ## Overview
 
