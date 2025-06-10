@@ -1,0 +1,16 @@
+[
+  {
+    "name": "io.github.guidewire.oss.cli.FernJUnitClientCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "io.github.guidewire.oss.cli.SendCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  }
+]

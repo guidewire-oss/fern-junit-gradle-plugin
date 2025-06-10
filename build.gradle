@@ -1,64 +1,164 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '2.1.20'
-    id 'org.jetbrains.kotlin.plugin.serialization' version '2.1.20'
-    id 'java-gradle-plugin'
-    id 'com.gradle.plugin-publish' version '1.2.1'
-    id 'com.gradleup.shadow' version "8.3.6"
-    id 'maven-publish'  // Add this plugin to use publishing block
+  id 'org.jetbrains.kotlin.jvm' version '2.1.20'
+  id 'org.jetbrains.kotlin.plugin.serialization' version '2.1.20'
+  id 'java-gradle-plugin'
+  id "org.graalvm.buildtools.native" version "0.10.6"  // GraalVM plugin
+  id 'application'
+  id 'com.gradle.plugin-publish' version '1.2.1'
+  id 'com.gradleup.shadow' version "8.3.6"
+  id 'maven-publish'  // Add this plugin to use publishing block
 }
 
 group = 'io.github.guidewire-oss'
-version = '1.0.0'
+version = project.hasProperty('version') ? project.version : '1.0.0'
+
+def os = DefaultNativePlatform.currentOperatingSystem
+def arch = DefaultNativePlatform.currentArchitecture
 
 gradlePlugin {
-    website = "https://github.com/guidewire-oss/fern-junit-gradle-plugin"
-    vcsUrl = "https://github.com/guidewire-oss/fern-junit-gradle-plugin"
-    plugins {
-        create("fernPublisher") {
-            id = "io.github.guidewire-oss.fern-publisher"
-            displayName = 'fern-publisher'
-            description = 'This plugin simplifies the process of collecting JUnit XML test reports and publishing them to a Fern test reporting service. It parses JUnit XML reports, converts them to Fern\'s data model, and sends them to your Fern instance through its API. To learn more about Fern, check out its repository: https://github.com/guidewire-oss/fern-reporter'
-            tags = ['testing', 'testing-tools', 'reporter', 'fern', 'test-reporter']
-            implementationClass = "io.github.guidewire.oss.plugin.FernPublisherPlugin"
-        }
+  website = "https://github.com/guidewire-oss/fern-junit-gradle-plugin"
+  vcsUrl = "https://github.com/guidewire-oss/fern-junit-gradle-plugin"
+  plugins {
+    create("fernPublisher") {
+      id = "io.github.guidewire-oss.fern-publisher"
+      displayName = 'fern-publisher'
+      description = 'This plugin simplifies the process of collecting JUnit XML test reports and publishing them to a Fern test reporting service. It parses JUnit XML reports, converts them to Fern\'s data model, and sends them to your Fern instance through its API. To learn more about Fern, check out its repository: https://github.com/guidewire-oss/fern-reporter'
+      tags = ['testing', 'testing-tools', 'reporter', 'fern', 'test-reporter']
+      implementationClass = "io.github.guidewire.oss.plugin.FernPublisherPlugin"
     }
+  }
 }
 
 publishing {
-    repositories {
-        mavenLocal()
-    }
+  repositories {
+    mavenLocal()
+  }
 }
 
 repositories {
-    mavenLocal()
-    mavenCentral()
+  mavenLocal()
+  mavenCentral()
 }
 
 shadowJar {
-    archiveClassifier.set('') // This removes the default 'all' classifier
+  archiveClassifier.set('') // This removes the default 'all' classifier
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0'
+  implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0"
+  implementation "com.github.ajalt.clikt:clikt:5.0.1"
 
-    testImplementation 'org.jetbrains.kotlin:kotlin-test'
-    testImplementation("org.assertj:assertj-core:3.27.3")
-    testImplementation "org.junit.jupiter:junit-jupiter:5.9.2"
-    testImplementation "org.wiremock:wiremock:3.12.1"
-    testImplementation(gradleTestKit())
+  testImplementation "org.jetbrains.kotlin:kotlin-test"
+  testImplementation "org.assertj:assertj-core:3.27.3"
+  testImplementation "org.junit.jupiter:junit-jupiter:5.9.2"
+  testImplementation "org.wiremock:wiremock:3.12.1"
+  testImplementation gradleTestKit()
 
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+application {
+  mainClass = "io.github.guidewire.oss.MainKt"
+}
+
+jar {
+  manifest {
+    attributes 'Main-Class': 'io.github.guidewire.oss.MainKt'
+  }
+  exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA' // NECESSARY TO BUILD JAR
+
+  // Include all dependencies in the jar (fat jar)
+  from {
+    configurations.runtimeClasspath.collect {
+      it.isDirectory() ? it : zipTree(it)
+    }
+  }
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Currently just used to pass the version. If you can find a better way of doing this, then go for it
+task generateProps {
+  def propsFile = layout.buildDirectory.file("resources/main/app.properties")
+
+  doLast {
+    file(propsFile.get().asFile).write("appVersion=$version")
+  }
+}
+
+task nativeImage(type: Exec) {
+  group = 'build'
+  description = 'Builds a native image using GraalVM'
+
+  def outputName = "fern-junit-client-${version}-${os.toFamilyName()}-${arch.name}"
+  def graalVmHome = System.getenv('GRAALVM_HOME')
+
+  dependsOn("generateProps")
+  dependsOn tasks.jar
+
+  doFirst {
+    if (graalVmHome == null) {
+      throw new GradleException('GRAALVM_HOME environment variable not set')
+    }
+
+    def nativeImageCmd = "${graalVmHome}/bin/native-image${os.isWindows() ? '.cmd' : ''}"
+    if (!new File(nativeImageCmd).exists()) {
+      throw new GradleException("Native image command not found at: $nativeImageCmd")
+    }
+
+    // Create a special jar for native image building, excluding Gradle plugin classes
+    copy {
+      from jar.outputs
+      into "${buildDir}/native-image"
+      rename {fileName ->
+        fileName.replace(jar.archiveFileName.get(), "native-${jar.archiveFileName.get()}")
+      }
+    }
+
+    // Remove Gradle plugin classes from the jar
+    fileTree("${buildDir}/native-image").matching {
+      include "native-${jar.archiveFileName.get()}"
+    }.each {jarFile ->
+      ant.zip(destfile: "${buildDir}/native-image/temp.jar") {
+        zipfileset(src: jarFile) {
+          exclude(name: "org/gradle/internal/impldep/org/bouncycastle/jcajce/provider/drbg/**")
+          exclude(name: "com/guidewire/plugin/**")
+          exclude(name: "META-INF/gradle-plugins/**")
+        }
+      }
+      delete jarFile
+      file("${buildDir}/native-image/temp.jar").renameTo(jarFile)
+    }
+  }
+
+  workingDir = "${buildDir}/native-image"
+  def jarName = "native-${project.name}-${project.version}-main.jar"
+
+  commandLine = [
+      "${graalVmHome}/bin/native-image${os.isWindows() ? '.cmd' : ''}",
+      '--no-fallback',
+      '--enable-url-protocols=https',
+      '-H:+ReportExceptionStackTraces',
+      '-H:ReflectionConfigurationFiles=../../src/main/resources/reflect-config.json',
+      '--initialize-at-build-time=kotlin',
+      '--initialize-at-build-time=kotlinx',
+      '--initialize-at-build-time=io.github.guidewire.oss',
+      '--initialize-at-build-time=org.slf4j',
+      '--initialize-at-build-time=org.gradle.internal',
+      '-jar', jarName,
+      outputName
+  ]
 }
 
 tasks.test {
-    useJUnitPlatform()
+  useJUnitPlatform()
 }
 
 test {
-    useJUnitPlatform()
+  useJUnitPlatform()
 }
 
 kotlin {
-    jvmToolchain(17)
+  jvmToolchain(17)
 }
