@@ -83,6 +83,7 @@ task generateProps {
   def propsFile = layout.buildDirectory.file("resources/main/app.properties")
 
   doLast {
+    file(propsFile.get().asFile).parentFile.mkdirs()
     file(propsFile.get().asFile).write("appVersion=$version")
   }
 }
