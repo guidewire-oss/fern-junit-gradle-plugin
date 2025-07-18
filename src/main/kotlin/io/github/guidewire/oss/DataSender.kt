@@ -54,7 +54,7 @@ private fun postTestRun(endpoint: String, fernUrl: String, payload: String): Htt
 
   var response = client.send(request, HttpResponse.BodyHandlers.ofString())
   if (response.statusCode() == 307) {
-    val locationHeader = response.headers().firstValue("location")
+    val locationHeader = response.headers().firstValue("location").orElseThrow { RuntimeException("Location header not found in 307 response") }
     response = postTestRun(fernUrl + locationHeader, fernUrl, payload)
   }
   return response
