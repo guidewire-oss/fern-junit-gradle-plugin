@@ -18,12 +18,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-latest, macos-latest ]
         include:
           - os: ubuntu-latest
             graalvm-home: /usr/lib/graalvm
-          - os: windows-latest
-            graalvm-home: C:\graalvm
           - os: macos-latest
             graalvm-home: /Library/Java/JavaVirtualMachines/graalvm
 
