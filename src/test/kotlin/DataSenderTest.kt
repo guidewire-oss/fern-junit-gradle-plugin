@@ -66,6 +66,44 @@ class DataSenderTest {
     )
   }
 
+ @Test
+   fun `sendTestRun should follow redirects`() {
+     // Setup mock server for initial redirect
+     stubFor(
+       post(urlEqualTo("/api/testrun/"))
+         .willReturn(
+           aResponse()
+             .withStatus(307)
+             .withHeader("Location", "/api/testrun/redirect")
+         )
+     )
+
+     // Setup mock server for the redirected endpoint
+     stubFor(
+       post(urlEqualTo("/api/testrun/redirect"))
+         .withHeader("Content-Type", equalTo("application/json"))
+         .willReturn(
+           aResponse()
+             .withStatus(200)
+             .withBody("{\"status\":\"success\"}")
+         )
+     )
+
+     // Test API call
+     val result = sendTestRun(testRun, "http://localhost:${wireMockServer.port()}", true)
+
+     // Verify
+     assertTrue(result.isSuccess)
+     verify(
+       postRequestedFor(urlEqualTo("/api/testrun/"))
+         .withHeader("Content-Type", equalTo("application/json"))
+     )
+     verify(
+       postRequestedFor(urlEqualTo("/api/testrun/redirect"))
+         .withHeader("Content-Type", equalTo("application/json"))
+     )
+   }
+
   @Test
   fun `sendTestRun should handle server errors`() {
     // Setup mock server to return error
