@@ -61,18 +61,17 @@ jobs:
 
       - name: Create GitHub Release
         id: create_release
-        uses: ncipollo/release-action@v1
+        uses: softprops/action-gh-release@v2
         with:
-          allowUpdates: true
+          files: artifacts/**
+          generate_release_notes: true
+          tag_name: 'v${{ github.event.inputs.tag }}'
+          make_latest: true
           draft: "${{ github.event.inputs.draft-release }}"
-          generateReleaseNotes: true
-          artifacts: artifacts/**
-          #token: ${{ secrets.GITHUB_TOKEN }}
-          tag: 'v${{ github.event.inputs.tag }}'
-          name: 'v${{ github.event.inputs.tag }}'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Add release URL to job summary
         if: success()
         run: |
-          echo "Release URL: ${{ steps.create_release.outputs.html_url }}"
-          echo "Release URL: ${{ steps.create_release.outputs.html_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "Release URL: ${{ steps.create_release.outputs.url }}"
+          echo "Release URL: ${{ steps.create_release.outputs.url }}" >> $GITHUB_STEP_SUMMARY
