@@ -42,6 +42,26 @@ abstract class PublishToFern : DefaultTask() {
   @get:Optional
   abstract val failOnError: Property<Boolean>
 
+  @get:Input
+  @get:Optional
+  abstract val authUrl: Property<String>
+
+  @get:Input
+  @get:Optional
+  abstract val authClientId: Property<String>
+
+  @get:Input
+  @get:Optional
+  abstract val authClientSecret: Property<String>
+
+  @get:Input
+  @get:Optional
+  abstract val authScopes: Property<String>
+
+  @get:Input
+  @get:Optional
+  abstract val apiEndpointPath: Property<String>
+
   init {
     fernTags.convention(listOf()) // Set default value
     verbose.convention(false)
@@ -49,6 +69,11 @@ abstract class PublishToFern : DefaultTask() {
     failOnError.convention(false)
     projectName.convention("")
     projectId.convention("")
+    authUrl.convention("")
+    authClientId.convention("")
+    authClientSecret.convention("")
+    authScopes.convention("")
+    apiEndpointPath.convention("api/v1/test-runs")
   }
 
   @TaskAction
@@ -123,7 +148,33 @@ abstract class PublishToFern : DefaultTask() {
 
     logger.lifecycle("Found ${testRun.suiteRuns.size} test suites with a total of ${testRun.suiteRuns.sumOf { it.specRuns.size }} test specs")
 
-    sendTestRun(testRun, fernUrl, isVerbose).fold(
+    // Create OAuth config if auth URL is provided
+    val oauthConfig = if (authUrl.get().isNotBlank()) {
+      if (authClientId.get().isBlank() || authClientSecret.get().isBlank()) {
+        logger.error("OAuth configuration error: authUrl is set but authClientId or authClientSecret is missing")
+        if (failOnError.get()) {
+          throw IllegalArgumentException("OAuth configuration error: authUrl is set but authClientId or authClientSecret is missing")
+        }
+        null
+      } else {
+        io.github.guidewire.oss.auth.OAuthConfig(
+          tokenUrl = authUrl.get(),
+          clientId = authClientId.get(),
+          clientSecret = authClientSecret.get(),
+          scopes = authScopes.get()
+        )
+      }
+    } else {
+      null
+    }
+
+    sendTestRun(
+      testRun = testRun,
+      fernUrl = fernUrl,
+      verbose = isVerbose,
+      oauthConfig = oauthConfig,
+      apiEndpointPath = apiEndpointPath.get()
+    ).fold(
       onSuccess = {
         logger.lifecycle("Successfully published test results to Fern")
       },

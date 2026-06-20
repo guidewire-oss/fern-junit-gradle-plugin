@@ -111,6 +111,45 @@ fernPublisher {
 | verbose     | Enable verbose logging                                                                                                                                                    | No       | false      |
 | failOnError | When true, will fail when error is thrown. Errors will always log.                                                                                                        | No       | false      |
 
+
+### Authentication (Optional)
+
+If your Fern instance requires OAuth authentication, you can configure it using environment variables:
+
+```bash
+export AUTH_URL="https://auth.example.com/token"
+export FERN_AUTH_CLIENT_ID="your-client-id"
+export FERN_AUTH_CLIENT_SECRET="your-client-secret"
+export FERN_CLIENT_SCOPE="fern.write fernproject.myproject"
+```
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| AUTH_URL | OAuth token endpoint URL. Setting this enables OAuth. | Yes (to enable auth) |
+| FERN_AUTH_CLIENT_ID | OAuth client identifier | Yes (if `AUTH_URL` is set) |
+| FERN_AUTH_CLIENT_SECRET | OAuth client secret | Yes (if `AUTH_URL` is set) |
+| FERN_CLIENT_SCOPE | Space-separated OAuth scopes (e.g., `fern.write fern.read`) | No |
+
+OAuth is enabled when `AUTH_URL` is set; if it is set, `FERN_AUTH_CLIENT_ID` and
+`FERN_AUTH_CLIENT_SECRET` are required and the plugin will fail fast if either is missing.
+The plugin uses the OAuth 2.0 client credentials flow and adds the bearer token to API calls.
+
+Alternatively, you can configure OAuth in your `build.gradle` via the `fernPublisher` extension.
+Prefer sourcing secrets from the environment rather than hardcoding them:
+
+```gradle
+fernPublisher {
+    authUrl          = System.getenv("AUTH_URL")
+    authClientId     = System.getenv("FERN_AUTH_CLIENT_ID")
+    authClientSecret = System.getenv("FERN_AUTH_CLIENT_SECRET")
+    authScopes       = "fern.write fernproject.myproject"
+}
+```
+
+If `authUrl` is set in the extension it takes precedence; the environment variables above are
+used as a fallback when `authUrl` is left blank.
+
+
 ## Usage
 
 Run the task to publish test results:
@@ -210,25 +249,46 @@ cd fern-junit-publisher
 
 ## Development
 
-You can build and publish this plugin for use locally with the command
+### Publishing to Local Maven Repository
+
+To test the plugin locally during development, you can publish it to your local Maven repository (`.m2`).
+
+**Important:** You must specify a version number when publishing. Use the latest released version or the next version you plan to release.
 
 ```bash
-./gradlew publishToMavenLocal
+./gradlew publishToMavenLocal -Pversion=1.1.0
 ```
 
-You should see the plugin in your local `.m2` repository.
+The plugin will be published to your local `.m2` repository at:
+```
+~/.m2/repository/io/github/guidewire-oss/fern-junit-gradle-plugin/1.1.0/
+```
 
-From there you can set up a test project to use the plugin. Make sure to edit your `settings.gradle` file to use plugins
-found in your local m2 repository.
+### Using the Local Plugin in a Test Project
 
-```gradle
+To use your locally published plugin in a test project:
+
+1. Configure your test project's `settings.gradle` (or `settings.gradle.kts`) to use `mavenLocal()`:
+
+```groovy
 pluginManagement {
     repositories {
-        mavenLocal()
+        mavenLocal()  // Check local repository first
         mavenCentral()
     }
 }
 ```
+
+2. Apply the plugin in your test project's `build.gradle`:
+
+```groovy
+plugins {
+    id 'io.github.guidewire-oss.fern-publisher' version '1.1.0'
+}
+```
+
+3. Configure and test the plugin as described in the [Configuration](#configuration) section.
+
 ### Building the CLI
 Native CLI binaries are built using GraalVM's native-image tool. This allows the CLI to run without requiring a Java runtime, making it lightweight and portable.
 
@@ -237,5 +297,70 @@ For building the CLI, you will need to have GraalVM installed and set the enviro
 Once that is set up, run the following command in the project root:
 
 ```bash
-./gradlew nativeImage -Pversion="1.0.0-SNAPSHOT" 
+./gradlew nativeImage -Pversion="1.1.0"
 ```
+
+## Testing
+
+This project uses JUnit 5 (Jupiter) for testing along with AssertJ for assertions, WireMock for HTTP mocking, and Gradle TestKit for plugin testing.
+
+### Running Tests
+
+Run all tests:
+```bash
+./gradlew test
+```
+
+Run tests with verbose output:
+```bash
+./gradlew test --info
+```
+
+Run a specific test class:
+```bash
+./gradlew test --tests TestParserTest
+./gradlew test --tests DataSenderTest
+./gradlew test --tests FernPublisherPluginTest
+```
+
+Run a specific test method:
+```bash
+./gradlew test --tests "TestParserTest.parseReports should handle empty file pattern"
+```
+
+Continuous testing (watches for changes):
+```bash
+./gradlew test --continuous
+```
+
+Clean and test:
+```bash
+./gradlew clean test
+```
+
+### Test Structure
+
+The project includes three main test suites located in `src/test/kotlin/`:
+
+- **TestParserTest.kt** - Tests JUnit XML parsing logic, including:
+  - Parsing various JUnit XML formats
+  - Handling empty file patterns
+  - Timezone handling
+  - Test suite and test case extraction
+
+- **DataSenderTest.kt** - Tests HTTP client and API communication, including:
+  - Sending test data to Fern Reporter API
+  - HTTP retry logic
+  - Error handling and redirects
+
+- **FernPublisherPluginTest.kt** - Tests Gradle plugin functionality, including:
+  - Plugin configuration
+  - Task registration
+  - Integration with Gradle build lifecycle
+
+### Test Dependencies
+
+- **JUnit Jupiter** (JUnit 5) - Testing framework
+- **AssertJ** - Fluent assertion library
+- **WireMock** - HTTP service mocking
+- **Gradle TestKit** - Gradle plugin testing framework

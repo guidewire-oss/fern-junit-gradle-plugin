@@ -25,6 +25,15 @@ class SendCommand : CliktCommand(
   private val tags by option("-t", "--tags", help = "Comma-separated tags to be included on runs")
   private val verbose by option("-v", "--verbose", help = "Enable verbose output").flag()
 
+  // OAuth options
+  private val authUrl by option("--auth-url", help = "OAuth 2.0 token endpoint URL (enables OAuth if set)")
+  private val authClientId by option("--auth-client-id", help = "OAuth client ID")
+  private val authClientSecret by option("--auth-client-secret", help = "OAuth client secret")
+  private val authScopes by option("--auth-scopes", help = "Space-separated OAuth scopes")
+
+  // API endpoint path option
+  private val apiEndpointPath by option("--api-endpoint-path", help = "Custom API endpoint path (default: api/v1/test-runs)")
+
   override fun run() {
     try {
       echo("Reading reports from: ${filePatterns.joinToString(":")}")
@@ -68,7 +77,29 @@ class SendCommand : CliktCommand(
         exitProcess(1)
       }
 
-      sendTestRun(testRun, fernUrl, verbose).fold(
+      // Create OAuth config if auth URL is provided
+      val oauthConfig = if (authUrl != null) {
+        if (authClientId == null || authClientSecret == null) {
+          echo("ERROR: --auth-url is set but --auth-client-id or --auth-client-secret is missing", err = true)
+          exitProcess(1)
+        }
+        io.github.guidewire.oss.auth.OAuthConfig(
+          tokenUrl = authUrl!!,
+          clientId = authClientId!!,
+          clientSecret = authClientSecret!!,
+          scopes = authScopes ?: ""
+        )
+      } else {
+        null
+      }
+
+      sendTestRun(
+        testRun = testRun,
+        fernUrl = fernUrl,
+        verbose = verbose,
+        oauthConfig = oauthConfig,
+        apiEndpointPath = apiEndpointPath
+      ).fold(
         onSuccess = {
           echo("Successfully published test results to Fern")
         },

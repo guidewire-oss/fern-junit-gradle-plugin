@@ -19,6 +19,11 @@ class FernPublisherPlugin : Plugin<Project> {
       extension.fernTags.orNull?.let { task.fernTags.set(it) }
       extension.verbose.orNull?.let { task.verbose.set(it) }
       extension.failOnError.orNull?.let {task.failOnError.set(it) }
+      extension.authUrl.orNull?.let { task.authUrl.set(it) }
+      extension.authClientId.orNull?.let { task.authClientId.set(it) }
+      extension.authClientSecret.orNull?.let { task.authClientSecret.set(it) }
+      extension.authScopes.orNull?.let { task.authScopes.set(it) }
+      extension.apiEndpointPath.orNull?.let { task.apiEndpointPath.set(it) }
       task.projectDir.set(project.projectDir.absolutePath + "/")
     }
   }

@@ -39,7 +39,7 @@ class FernPublisherPluginTest {
 
     // Stub the API endpoint
     stubFor(
-      post(urlEqualTo("/api/testrun/"))
+      post(urlEqualTo("/api/v1/test-runs"))
         .willReturn(aResponse().withStatus(200))
     )
 
@@ -118,7 +118,7 @@ class FernPublisherPluginTest {
 
     // Verify the API was called
     verify(
-      postRequestedFor(urlEqualTo("/api/testrun/"))
+      postRequestedFor(urlEqualTo("/api/v1/test-runs"))
         .withHeader("Content-Type", equalTo("application/json"))
     )
   }
@@ -128,7 +128,7 @@ class FernPublisherPluginTest {
     // Reset stub to return an error
     reset()
     stubFor(
-      post(urlEqualTo("/api/testrun/"))
+      post(urlEqualTo("/api/v1/test-runs"))
         .willReturn(aResponse().withStatus(500))
     )
 
@@ -305,7 +305,7 @@ class FernPublisherPluginTest {
 
     // Verify the API was called
     verify(
-      postRequestedFor(urlEqualTo("/api/testrun/"))
+      postRequestedFor(urlEqualTo("/api/v1/test-runs"))
         .withHeader("Content-Type", equalTo("application/json"))
     )
   }
