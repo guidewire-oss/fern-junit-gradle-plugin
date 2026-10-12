@@ -27,7 +27,7 @@ Add the plugin to your `build.gradle.kts` file:
 
 ```kotlin
 plugins {
-  id("io.github.guidewire-oss.fern-publisher") version "1.0.0"
+  id("io.github.guidewire-oss.fern-publisher") version "1.1.0"
 }
 ```
 
@@ -35,7 +35,7 @@ Or in `build.gradle`:
 
 ```groovy
 plugins {
-  id 'io.github.guidewire-oss.fern-publisher' version '1.0.0'
+  id 'io.github.guidewire-oss.fern-publisher' version '1.1.0'
 }
 ```
 
